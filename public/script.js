@@ -185,7 +185,8 @@ function dream(prompt, img) {
     waiting = true
     let canvas = document.querySelector('#canvas');
     let input = {
-        prompt
+        prompt: prompt,
+        steps: 1
     }
     if (img) {
         input['image'] = img
@@ -198,7 +199,7 @@ function dream(prompt, img) {
         body: JSON.stringify({ input })
     }).then((r) => r.json())
         .then((data) => {
-            let data_uri = data.output[0];
+            let data_uri = data.output;
             loadImage(data_uri, (img) => {
                 image(img, 0, 0, canvas.width, canvas.height);
                 images.push(data_uri);

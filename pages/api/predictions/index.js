@@ -48,5 +48,5 @@ export default async function handler(req, res) {
 
   res.statusCode = 201;
   console.log(prediction[0])
-  res.end(JSON.stringify({ output: prediction }));
+  res.end(JSON.stringify({ output: prediction[0] }));
 }
