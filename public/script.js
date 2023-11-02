@@ -29,20 +29,43 @@ function setup() {
 
     let formContainer = document.createElement("div");
     formContainer.setAttribute("id", "formContainer");
-    formContainer.setAttribute("style", "display: flex; flex-direction: column; gap: 1rem; padding: 1rem");
+    formContainer.setAttribute("style", "display: flex; flex-direction: column; gap: 1rem; padding: 1rem; align-items: center; align-content: center; justify-content: center;");
     container.appendChild(formContainer);
+
+    let promptAndSteps = document.createElement("div");
+    promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    formContainer.appendChild(promptAndSteps)
     // Text input box for a prompt
+    let promptLabel = document.createElement("label");
+    promptLabel.setAttribute("for", "promptInput");
+    promptLabel.innerText = "Prompt:";
+    promptAndSteps.appendChild(promptLabel);
     let promptInput = document.createElement("input");
     promptInput.setAttribute("type", "text");
     promptInput.setAttribute("value", "New York streetscape");
     promptInput.setAttribute("id", "promptInput");
     promptInput.setAttribute("style", "margin: 0 auto;");
-    formContainer.appendChild(promptInput);
+    promptAndSteps.appendChild(promptInput);
+
+    // Text input box for number of steps
+    let stepsLabel = document.createElement("label");
+    stepsLabel.setAttribute("for", "steps");
+    stepsLabel.innerText = "Steps:";
+    promptAndSteps.appendChild(stepsLabel);
+
+    let steps = document.createElement("input");
+    steps.setAttribute("type", "number");
+    steps.setAttribute("value", 1);
+    steps.setAttribute("min", 1);
+    steps.setAttribute("max", 6);
+    steps.setAttribute("id", "steps");
+    steps.setAttribute("style", "margin: 0 auto;");
+    promptAndSteps.appendChild(steps);
 
     // Slider that scrubs through history
     let historyContainer = document.createElement("div");
     historyContainer.setAttribute("id", "historyContainer");
-    historyContainer.setAttribute("style", "display: flex; flex-direction: column; gap: 1rem; padding: 1rem; align-items: center; align-content: center; justify-content: center; visibility: hidden");
+    historyContainer.setAttribute("style", "display: none; background-color: #EEEEEE; flex-direction: column; gap: 1rem; padding: 1rem; align-items: center; align-content: center; justify-content: center");
     historyContainer.innerHTML = "<div style=\"flex-basis: 100%\"><h2 style=\"font-size: 120%\">History (scrub to go back)</h2></div>"
     formContainer.appendChild(historyContainer);
 
@@ -90,8 +113,8 @@ function setup() {
     txt2imgButton.innerHTML = "Reset"
     txt2imgButton.addEventListener("click", (e) => {
         images = []
-        historyContainer.style.visibility = "hidden";
-        dream(promptInput.value);
+        historyContainer.style.display = "none";
+        dream(promptInput.value, undefined, steps.value);
     });
     formContainer.appendChild(txt2imgButton);
 
@@ -167,7 +190,8 @@ function mouseReleased() {
             let img = offscreenCanvas.toDataURL("image/jpeg");
 
             let prompt = document.querySelector('#promptInput').value;
-            dream(prompt, img);
+            let steps = parseInt(document.querySelector('#steps').value);
+            dream(prompt, img, steps);
         }
     }
 }
@@ -221,7 +245,7 @@ function mouseWheel(e) {
     }
 }
 
-function dream(prompt, img) {
+function dream(prompt, img, steps) {
     if (playing) {
         // Don't dream if playing, just pause
         playing = false
@@ -232,7 +256,7 @@ function dream(prompt, img) {
         let canvas = document.querySelector('#canvas');
         let input = {
             prompt: prompt,
-            steps: 1
+            steps: steps || 1
         }
         if (img) {
             input['image'] = img
@@ -270,7 +294,7 @@ function dream(prompt, img) {
                     historySlider.value = images.length;
                     if (images.length > 1) {
                         let historyContainer = document.querySelector('#historyContainer');
-                        historyContainer.style.visibility = "visible";
+                        historyContainer.style.display = "flex";
                     }
                 });
             }).then(() => {
