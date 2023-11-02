@@ -1,6 +1,6 @@
 let replicateEndpoint = 'api/predictions' // if using Replicate
 let localEndpoint = 'http://localhost:5001/predictions' // if using local LCM from https://github.com/replicate/latent-consistency-model/tree/prototype
-let endpoint = replicateEndpoint;
+let endpoint = localEndpoint;
 
 let images = [];
 let currentImage;
@@ -182,6 +182,7 @@ function addToPreviousImageLog(data_uri) {
 }
 
 function dream(prompt, img) {
+    let startTime = Date.now();
     waiting = true
     let canvas = document.querySelector('#canvas');
     let input = {
@@ -208,6 +209,7 @@ function dream(prompt, img) {
             addToPreviousImageLog(data_uri);
         }).then(() => {
             waiting = false;
+            console.log(`Generated in: ${Date.now() - startTime} ms`);
         });
 
 }
