@@ -6,7 +6,6 @@ input {
   @apply border;
   @apply border-solid;
   @apply border-gray-300;
-  /* @apply rounded-md; */
   @apply px-4;
   @apply py-2;
 }
@@ -15,12 +14,26 @@ input {
   @apply border border-black border-opacity-10;
 }
 
-.button {
-  @apply bg-black text-white rounded-r-md inline-block px-5 py-3;
-}
-
 .image-wrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
   position: relative;
+}
+
+button {
+  @apply bg-transparent hover:bg-gray-500 text-black font-semibold hover:text-white py-1 px-4 border border-black hover:border-transparent rounded
+}
+
+input[type=range] {
+  @apply h-2 bg-gray-200 rounded-lg appearance-none dark:bg-gray-700
+}
+
+input[type=range]::-webkit-slider-thumb {
+
+  -webkit-appearance: none;
+  height: 36px;
+  width: 8px;
+  border-radius: 3px;
+  background: rgb(81, 81, 81);
+  cursor: pointer;
 }

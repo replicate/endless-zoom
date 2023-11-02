@@ -5,9 +5,10 @@ let endpoint = localEndpoint;
 let images = [];
 let currentImage;
 let size = 256;
+let playing = false;
+var waiting = false;
 
-// Global state to prevent clicking while waiting, there's probably a better way to this
-var waiting = false
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
     let canvas = createCanvas(512, 512);
@@ -38,26 +39,43 @@ function setup() {
     promptInput.setAttribute("style", "margin: 0 auto;");
     formContainer.appendChild(promptInput);
 
-    // // Slider that adjusts size of box
-    // let sizeSlider = document.createElement("input");
-    // sizeSlider.setAttribute("id", "size")
-    // sizeSlider.setAttribute("type", "range");
-    // sizeSlider.setAttribute("min", "10");
-    // sizeSlider.setAttribute("max", "512");
-    // sizeSlider.setAttribute("value", "256");
-    // sizeSlider.setAttribute("step", "2"); // So we can neatly half it to get crop
+    // Slider that scrubs through history
+    let historyContainer = document.createElement("div");
+    historyContainer.setAttribute("id", "historyContainer");
+    historyContainer.setAttribute("style", "visibility: hidden");
+    historyContainer.innerHTML = "<h2 style=\"font-size: 120%;\">History (scrub to go back)</h2>"
+    formContainer.appendChild(historyContainer);
 
-    // sizeSlider.setAttribute("style", "margin: 0 auto;");
-    // formContainer.appendChild(sizeSlider);
+    let historySlider = document.createElement("input");
+    historySlider.setAttribute("id", "historySlider");
+    historySlider.setAttribute("type", "range");
+    historySlider.setAttribute("min", "1");
+    historySlider.setAttribute("max", "1");
+    historySlider.setAttribute("value", "1");
 
-    let previousImagesContainer = document.createElement("div");
-    previousImagesContainer.innerHTML = "<h2 style=\"font-size: 120%;\">Previous generations (click to load back in to canvas)</h2>"
-    container.appendChild(previousImagesContainer);
+    historySlider.setAttribute("style", "margin: 0 auto");
 
-    let previousImages = document.createElement("div");
-    previousImages.setAttribute("id", "previousImages");
-    previousImages.setAttribute("style", "margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; padding: 1rem");
-    previousImagesContainer.appendChild(previousImages);
+    historySlider.addEventListener("input", (e) => { imageToCanvas(images[parseInt(e.target.value) - 1]) });
+    historyContainer.appendChild(historySlider);
+
+    let playButton = document.createElement("button");
+    playButton.setAttribute("id", "playButton");
+    playButton.setAttribute("type", "button");
+    playButton.innerHTML = "Play"
+    playButton.addEventListener("click", (e) => {
+        playing = !playing;
+        e.target.innerHTML = playing ? "Pause" : "Play";
+
+        function play() {
+            if (playing) {
+                historySlider.value = (parseInt(historySlider.value)) % images.length + 1;
+                imageToCanvas(images[parseInt(historySlider.value) - 1]);
+                setTimeout(play, 500);
+            }
+        }
+        play();
+    });
+    historyContainer.appendChild(playButton);
 
     setTimeout(() => {
         data_uri = 'https://replicate.delivery/pbxt/4L6vyIjY6Q64OZlWQTJogKIwvDF1NVvHNKIdleNyG35nbD6IA/out-0.png'
@@ -161,7 +179,13 @@ function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
     let canvas = document.querySelector('#canvas');
     if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
-        size += e.delta;
+        if ((size + e.delta) > 512) {
+            size = 512;
+        } else if ((size + e.delta) < 50) {
+            size = 50;
+        } else {
+            size = size + e.delta;
+        }
         drawCursor();
         return false;
     }
@@ -169,7 +193,6 @@ function mouseWheel(e) {
 
 function addToPreviousImageLog(data_uri) {
     // Add last item from images to previous image log on page
-    let previousImages = document.querySelector("#previousImages");
     let oldImage = document.createElement("img");
     oldImage.setAttribute("width", "256");
     oldImage.setAttribute("style", "margin: 0 auto;");
@@ -177,7 +200,6 @@ function addToPreviousImageLog(data_uri) {
     oldImage.setAttribute("id", `image${images.length}`)
     // Load a previous image into the canvas when clicked
     oldImage.onclick = (e) => { imageToCanvas(e.target.src); };
-    previousImages.insertBefore(oldImage, previousImages.firstChild);
 }
 
 function dream(prompt, img) {
@@ -204,6 +226,12 @@ function dream(prompt, img) {
                 image(img, 0, 0, canvas.width, canvas.height);
                 images.push(data_uri);
                 currentImage = img;
+                let historySlider = document.querySelector('#historySlider');
+                historySlider.setAttribute('max', images.length);
+                historySlider.setAttribute('value', images.length);
+
+                let historyContainer = document.querySelector('#historyContainer');
+                historyContainer.setAttribute("style", "visibility: visible");
             });
             addToPreviousImageLog(data_uri);
         }).then(() => {
