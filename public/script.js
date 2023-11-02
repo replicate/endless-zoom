@@ -4,6 +4,7 @@ let endpoint = localEndpoint;
 
 let images = [];
 let currentImage;
+let size = 256;
 
 // Global state to prevent clicking while waiting, there's probably a better way to this
 var waiting = false
@@ -37,17 +38,17 @@ function setup() {
     promptInput.setAttribute("style", "margin: 0 auto;");
     formContainer.appendChild(promptInput);
 
-    // Slider that adjusts size of box
-    let sizeSlider = document.createElement("input");
-    sizeSlider.setAttribute("id", "size")
-    sizeSlider.setAttribute("type", "range");
-    sizeSlider.setAttribute("min", "10");
-    sizeSlider.setAttribute("max", "512");
-    sizeSlider.setAttribute("value", "256");
-    sizeSlider.setAttribute("step", "2"); // So we can neatly half it to get crop
+    // // Slider that adjusts size of box
+    // let sizeSlider = document.createElement("input");
+    // sizeSlider.setAttribute("id", "size")
+    // sizeSlider.setAttribute("type", "range");
+    // sizeSlider.setAttribute("min", "10");
+    // sizeSlider.setAttribute("max", "512");
+    // sizeSlider.setAttribute("value", "256");
+    // sizeSlider.setAttribute("step", "2"); // So we can neatly half it to get crop
 
-    sizeSlider.setAttribute("style", "margin: 0 auto;");
-    formContainer.appendChild(sizeSlider);
+    // sizeSlider.setAttribute("style", "margin: 0 auto;");
+    // formContainer.appendChild(sizeSlider);
 
     let previousImagesContainer = document.createElement("div");
     previousImagesContainer.innerHTML = "<h2 style=\"font-size: 120%;\">Previous generations (click to load back in to canvas)</h2>"
@@ -96,8 +97,6 @@ function mouseReleased() {
             offscreenCanvas.width = 512;
             offscreenCanvas.height = 512;
             let ctx = offscreenCanvas.getContext('2d');
-
-            let size = document.querySelector("#size").value;
 
             // Define the source clipping region (the zoomed-in box)
             let srcX = mouseX - size / 2;
@@ -151,7 +150,7 @@ function drawCursor() {
         image(img, 0, 0, canvas.width, canvas.height)
     }
     // Draw cursor
-    drawSquareBox(mouseX, mouseY, document.getElementById('size').value);
+    drawSquareBox(mouseX, mouseY, size);
 }
 
 function mouseMoved() {
@@ -162,7 +161,7 @@ function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
     let canvas = document.querySelector('#canvas');
     if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
-        document.querySelector('#size').value = (parseInt(document.querySelector('#size').value) + e.delta).toString();
+        size += e.delta;
         drawCursor();
         return false;
     }
