@@ -1,3 +1,4 @@
+// requires 'https://cdn.jsdelivr.net/npm/gif-encoder-2@1.0.5/index.min.js'
 let replicateEndpoint = 'api/predictions' // if using Replicate
 let localEndpoint = 'http://localhost:5001/predictions' // if using local LCM from https://github.com/replicate/latent-consistency-model/tree/prototype
 let endpoint = localEndpoint;
@@ -105,6 +106,32 @@ function setup() {
         play();
     });
     historyInnerContainer.appendChild(playButton);
+
+
+
+    let downloadButton = document.createElement("button");
+    downloadButton.innerHTML = "Download Images"
+    downloadButton.addEventListener("click", () => {
+
+        async function toDataURL(url) {
+            const blob = await fetch(url).then(res => res.blob());
+            return URL.createObjectURL(blob);
+        }
+
+        async function download(url, filename) {
+            const a = document.createElement("a");
+            a.href = await toDataURL(url);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        for (const [i, im_url] of images.entries()) {
+            download(im_url, `image_${i.toString().padStart(3, '0')}.png`);
+        }
+    });
+    historyInnerContainer.appendChild(downloadButton);
 
 
     let txt2imgButton = document.createElement("button");
