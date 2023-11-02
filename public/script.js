@@ -42,40 +42,58 @@ function setup() {
     // Slider that scrubs through history
     let historyContainer = document.createElement("div");
     historyContainer.setAttribute("id", "historyContainer");
-    historyContainer.setAttribute("style", "visibility: hidden");
-    historyContainer.innerHTML = "<h2 style=\"font-size: 120%;\">History (scrub to go back)</h2>"
+    historyContainer.setAttribute("style", "display: flex; flex-direction: column; gap: 1rem; padding: 1rem; align-items: center; align-content: center; justify-content: center; visibility: hidden");
+    historyContainer.innerHTML = "<div style=\"flex-basis: 100%\"><h2 style=\"font-size: 120%\">History (scrub to go back)</h2></div>"
     formContainer.appendChild(historyContainer);
+
+    let historyInnerContainer = document.createElement("div");
+    historyInnerContainer.setAttribute("id", "historyInnerContainer");
+    historyInnerContainer.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    historyContainer.appendChild(historyInnerContainer)
 
     let historySlider = document.createElement("input");
     historySlider.setAttribute("id", "historySlider");
+    historySlider.setAttribute("style", "flex-basis: 70%;");
     historySlider.setAttribute("type", "range");
     historySlider.setAttribute("min", "1");
     historySlider.setAttribute("max", "1");
     historySlider.setAttribute("value", "1");
 
-    historySlider.setAttribute("style", "margin: 0 auto");
-
-    historySlider.addEventListener("input", (e) => { imageToCanvas(images[parseInt(e.target.value) - 1]) });
-    historyContainer.appendChild(historySlider);
+    historySlider.addEventListener("input", (e) => { frameNumberToCanvas(parseInt(e.target.value)) });
+    historyInnerContainer.appendChild(historySlider);
 
     let playButton = document.createElement("button");
     playButton.setAttribute("id", "playButton");
+    playButton.setAttribute("style", "flex-basis: 20%;");
     playButton.setAttribute("type", "button");
     playButton.innerHTML = "Play"
     playButton.addEventListener("click", (e) => {
         playing = !playing;
-        e.target.innerHTML = playing ? "Pause" : "Play";
 
         function play() {
+            playButton.innerHTML = playing ? "Pause" : "Play";
+            txt2imgButton.disabled = playing
             if (playing) {
                 historySlider.value = (parseInt(historySlider.value)) % images.length + 1;
-                imageToCanvas(images[parseInt(historySlider.value) - 1]);
+                frameNumberToCanvas(parseInt(historySlider.value));
                 setTimeout(play, 500);
             }
         }
         play();
     });
-    historyContainer.appendChild(playButton);
+    historyInnerContainer.appendChild(playButton);
+
+
+    let txt2imgButton = document.createElement("button");
+    txt2imgButton.setAttribute("id", "txt2imgButton");
+    txt2imgButton.setAttribute("type", "button");
+    txt2imgButton.innerHTML = "Reset"
+    txt2imgButton.addEventListener("click", (e) => {
+        images = []
+        historyContainer.style.visibility = "hidden";
+        dream(promptInput.value);
+    });
+    formContainer.appendChild(txt2imgButton);
 
     setTimeout(() => {
         data_uri = 'https://replicate.delivery/pbxt/4L6vyIjY6Q64OZlWQTJogKIwvDF1NVvHNKIdleNyG35nbD6IA/out-0.png'
@@ -83,9 +101,9 @@ function setup() {
             (img) => {
                 image(img, 0, 0, canvas.width, canvas.height);
                 images.push(data_uri);
+                img["frameNumber"] = 1;
                 currentImage = img;
             });
-        addToPreviousImageLog(data_uri);
     }, 10);
     drawCursor();
 
@@ -96,14 +114,19 @@ function draw() {
 
 }
 
-function imageToCanvas(im_url) {
+function imageToCanvas(im_url, frameNumber) {
     loadImage(
         im_url,
         (img) => {
             image(img, 0, 0, canvas.width, canvas.height);
+            img["frameNumber"] = frameNumber;
             currentImage = img;
         }
     )
+}
+
+function frameNumberToCanvas(frameNumber) {
+    imageToCanvas(images[frameNumber - 1], frameNumber);
 }
 
 function mouseReleased() {
@@ -172,7 +195,14 @@ function drawCursor() {
 }
 
 function mouseMoved() {
-    drawCursor()
+    // Check that mouse is in bounds of canvas
+    let canvas = document.querySelector('#canvas');
+    if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
+        // Check not in playback
+        if (!playing) {
+            drawCursor();
+        }
+    };
 }
 
 function mouseWheel(e) {
@@ -191,52 +221,63 @@ function mouseWheel(e) {
     }
 }
 
-function addToPreviousImageLog(data_uri) {
-    // Add last item from images to previous image log on page
-    let oldImage = document.createElement("img");
-    oldImage.setAttribute("width", "256");
-    oldImage.setAttribute("style", "margin: 0 auto;");
-    oldImage.setAttribute("src", data_uri);
-    oldImage.setAttribute("id", `image${images.length}`)
-    // Load a previous image into the canvas when clicked
-    oldImage.onclick = (e) => { imageToCanvas(e.target.src); };
-}
-
 function dream(prompt, img) {
-    let startTime = Date.now();
-    waiting = true
-    let canvas = document.querySelector('#canvas');
-    let input = {
-        prompt: prompt,
-        steps: 1
-    }
-    if (img) {
-        input['image'] = img
-    }
-    fetch(endpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ input })
-    }).then((r) => r.json())
-        .then((data) => {
-            let data_uri = data.output;
-            loadImage(data_uri, (img) => {
-                image(img, 0, 0, canvas.width, canvas.height);
-                images.push(data_uri);
-                currentImage = img;
-                let historySlider = document.querySelector('#historySlider');
-                historySlider.setAttribute('max', images.length);
-                historySlider.setAttribute('value', images.length);
+    if (playing) {
+        // Don't dream if playing, just pause
+        playing = false
+    } else {
+        waiting = true
+        let txt2imgButton = document.querySelector('#txt2imgButton');
+        txt2imgButton.disabled = true;
+        let canvas = document.querySelector('#canvas');
+        let input = {
+            prompt: prompt,
+            steps: 1
+        }
+        if (img) {
+            input['image'] = img
+        }
 
-                let historyContainer = document.querySelector('#historyContainer');
-                historyContainer.setAttribute("style", "visibility: visible");
+
+        let historySlider = document.querySelector('#historySlider');
+
+        historySlider.max = currentImage.frameNumber;
+        historySlider.value = currentImage.frameNumber;
+
+        let startTime = Date.now();
+        fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ input })
+        }).then((r) => r.json())
+            .then((data) => {
+                console.log(`Generated in: ${Date.now() - startTime} ms`);
+                let data_uri = data.output;
+                loadImage(data_uri, (img) => {
+                    image(img, 0, 0, canvas.width, canvas.height);
+
+                    // Remove history after the (previous) image
+                    images = images.slice(0, currentImage.frameNumber);
+
+                    // Add current image to history
+                    images.push(data_uri);
+                    img.frameNumber = images.length;
+                    currentImage = img;
+
+                    historySlider.max = images.length;
+                    historySlider.value = images.length;
+                    if (images.length > 1) {
+                        let historyContainer = document.querySelector('#historyContainer');
+                        historyContainer.style.visibility = "visible";
+                    }
+                });
+            }).then(() => {
+
+                waiting = false;
+                txt2imgButton.disabled = false;
             });
-            addToPreviousImageLog(data_uri);
-        }).then(() => {
-            waiting = false;
-            console.log(`Generated in: ${Date.now() - startTime} ms`);
-        });
+    }
 
 }

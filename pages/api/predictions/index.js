@@ -25,27 +25,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  // while (
-  //   prediction.status !== "succeeded" &&
-  //   prediction.status !== "failed"
-  // ) {
-  //   await sleep(10);
-  //   const response = await replicate.predictions.create({
-  //     // Pinned to fofr/latent-consistency-model:92b45676
-  //     version: "92b456763bbd035ef9dda7cc778c9cc8628cb4b48b8af813d541e78565342330",
-
-  //     // This is the text prompt that will be submitted by a form on the frontend
-  //     input: { prompt: req.body.prompt },
-  //   });
-  //   // fetch("/api/predictions/" + prediction.id);
-  //   setPrediction(await response.json());
-  //   if (response.status !== 200) {
-  //     res.statusCode = response.status;
-  //     res.end(JSON.stringify(prediction));
-  //     return;
-  //   }
-  // }
-
   res.statusCode = 201;
   console.log(prediction[0])
   res.end(JSON.stringify({ output: prediction[0] }));

@@ -21,11 +21,20 @@ input {
 }
 
 button {
-  @apply bg-transparent hover:bg-gray-500 text-black font-semibold hover:text-white py-1 px-4 border border-black hover:border-transparent rounded
+  @apply border rounded font-semibold py-1 px-4
+}
+
+button:enabled {
+  @apply bg-transparent hover:bg-gray-500 text-black hover:text-white hover:border-transparent border-black
+}
+
+button:disabled {
+  @apply bg-gray-300 text-gray-600 border-gray-300
 }
 
 input[type=range] {
-  @apply h-2 bg-gray-200 rounded-lg appearance-none dark:bg-gray-700
+  @apply h-2 bg-gray-200 rounded-lg appearance-none dark:bg-gray-700;
+  padding: 0;
 }
 
 input[type=range]::-webkit-slider-thumb {
