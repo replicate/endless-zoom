@@ -27,11 +27,17 @@ function setup() {
     canvas.id("canvas");
     document.querySelector('#canvas').setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
 
-
     let formContainer = document.createElement("div");
     formContainer.setAttribute("id", "formContainer");
     formContainer.setAttribute("style", "display: flex; flex-direction: column; gap: 1rem; padding: 1rem; align-items: center; align-content: center; justify-content: center;");
     container.appendChild(formContainer);
+
+    let fullscreenButton = document.createElement("img");
+    fullscreenButton.setAttribute("src", "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/fullscreen/default/24px.svg")
+    fullscreenButton.setAttribute("id", "fullscreenButton");
+    fullscreenButton.setAttribute("style", "cursor: pointer");
+    fullscreenButton.addEventListener("click", (e) => { document.querySelector('#canvas').requestFullscreen() });
+    formContainer.appendChild(fullscreenButton);
 
     let promptAndSteps = document.createElement("div");
     promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
