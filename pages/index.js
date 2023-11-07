@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>p5.js</title>
+        <title>Endless Zoom</title>
       </Head>
       <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" />
       <Script src="./script.js" />
