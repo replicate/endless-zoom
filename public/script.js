@@ -1,4 +1,3 @@
-// requires 'https://cdn.jsdelivr.net/npm/gif-encoder-2@1.0.5/index.min.js'
 let replicateEndpoint = 'api/predictions' // if using Replicate
 let localEndpoint = 'http://localhost:5001/predictions' // if using local LCM from https://github.com/replicate/latent-consistency-model/tree/prototype
 let endpoint = localEndpoint;
@@ -9,6 +8,10 @@ let size = 256;
 let playing = false;
 var waiting = false;
 
+// If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
+// so that we only generate the first time
+let justZoomed = false;
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
@@ -18,14 +21,16 @@ function setup() {
 
     let container = document.createElement("div");
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
-    container.setAttribute("style", "width: 100%; text-align: center; padding: 10rem; margin: auto auto;");
+    container.setAttribute("style", "width: 100%; text-align: center; padding: 1rem; margin: auto auto;");
     container.setAttribute("width", "512");
     container.setAttribute("id", "container");
     document.body.appendChild(container);
 
     canvas.parent("container");
     canvas.id("canvas");
-    document.querySelector('#canvas').setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
+    let canvasEl = document.querySelector('#canvas');
+    // canvasEl.addEventListener("pointermove", pointermoveHandler);
+    canvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
 
     let formContainer = document.createElement("div");
     formContainer.setAttribute("id", "formContainer");
@@ -36,7 +41,7 @@ function setup() {
     fullscreenButton.setAttribute("src", "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/fullscreen/default/24px.svg")
     fullscreenButton.setAttribute("id", "fullscreenButton");
     fullscreenButton.setAttribute("style", "cursor: pointer");
-    fullscreenButton.addEventListener("click", (e) => { document.querySelector('#canvas').requestFullscreen() });
+    fullscreenButton.addEventListener("click", (e) => { canvasEl.requestFullscreen() });
     formContainer.appendChild(fullscreenButton);
 
     let promptAndSteps = document.createElement("div");
@@ -207,17 +212,8 @@ function mouseReleased() {
             let destWidth = canvas.width;
             let destHeight = canvas.height;
 
-            // Clear the canvas
-            clear();
-            if (images.length > 0) {
-                // Redraw the image on the canvas
-                let img = currentImage;
-                image(img, 0, 0, canvas.width, canvas.height)
-            }
-
             // Draw the original image onto the offscreen canvas, zoomed
             ctx.drawImage(canvas, srcX, srcY, srcWidth, srcHeight, destX, destY, destWidth, destHeight);
-            drawCursor();
 
             // Get the data URI from the resized offscreen canvas
             let img = offscreenCanvas.toDataURL("image/jpeg");
@@ -238,7 +234,7 @@ function drawSquareBox(centerX, centerY, side) {
     noStroke();
 }
 
-function drawCursor() {
+function drawCursor(position) {
     let canvas = document.querySelector('#canvas')
     // Clear the canvas
     clear();
@@ -248,18 +244,53 @@ function drawCursor() {
         image(img, 0, 0, canvas.width, canvas.height)
     }
     // Draw cursor
-    drawSquareBox(mouseX, mouseY, size);
+    if (position === undefined) {
+        position = { x: mouseX, y: mouseY }
+    }
+    drawSquareBox(position.x, position.y, size);
 }
 
 function mouseMoved() {
     // Check that mouse is in bounds of canvas
     let canvas = document.querySelector('#canvas');
     if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
-        // Check not in playback
-        if (!playing) {
+        // Check not in playback or waiting for generation
+        if (!playing & !waiting) {
             drawCursor();
         }
     };
+}
+
+function touchMoved() {
+    if (!justZoomed) {
+        if (touches.length === 2) {
+            size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
+            center = { x: touches[0].x + (touches[1].x - touches[0].x) / 2, y: touches[0].y + (touches[1].y - touches[0].y) / 2 }
+
+            drawCursor(center);
+            return false;
+        }
+        return mouseMoved();
+    }
+    return false;
+}
+
+function touchEnded() {
+    if (justZoomed) {
+        justZoomed = false;
+        return false
+    }
+    if (touches.length === 1) {
+        justZoomed = true;
+    }
+    return mouseReleased();
+}
+
+function touchStarted() {
+    if (!justZoomed) {
+        return touchMoved();
+    }
+    return false;
 }
 
 function mouseWheel(e) {
