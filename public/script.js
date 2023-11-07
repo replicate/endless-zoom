@@ -1,7 +1,10 @@
 let replicateEndpoint = 'api/predictions' // if using Replicate
 let localEndpoint = 'http://localhost:5001/predictions' // if using local LCM from https://github.com/replicate/latent-consistency-model/tree/prototype
-let endpoint = localEndpoint;
+let endpoint = replicateEndpoint;
 
+
+
+// It would be great to make this all less stateful, but for now there are a lot of global variables
 let images = [];
 let currentImage;
 let size = 256;
@@ -11,6 +14,7 @@ var waiting = false;
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
 // so that we only generate the first time
 let justZoomed = false;
+let touchUserIsScrolling = false;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -262,17 +266,20 @@ function mouseMoved() {
 }
 
 function touchMoved() {
-    if (!justZoomed) {
-        if (touches.length === 2) {
-            size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
-            center = { x: touches[0].x + (touches[1].x - touches[0].x) / 2, y: touches[0].y + (touches[1].y - touches[0].y) / 2 }
+    if ((mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) & !touchUserIsScrolling) {
+        if (!justZoomed) {
+            if (touches.length === 2) {
+                size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
+                center = { x: touches[0].x + (touches[1].x - touches[0].x) / 2, y: touches[0].y + (touches[1].y - touches[0].y) / 2 }
 
-            drawCursor(center);
-            return false;
+                drawCursor(center);
+                return false;
+            }
+            mouseMoved();
+            return true;
         }
-        return mouseMoved();
     }
-    return false;
+    return true;
 }
 
 function touchEnded() {
@@ -283,13 +290,22 @@ function touchEnded() {
     if (touches.length === 1) {
         justZoomed = true;
     }
+    if (touches.length === 0 & touchUserIsScrolling) {
+        touchUserIsScrolling = false;
+        return true;
+    }
     return mouseReleased();
 }
 
 function touchStarted() {
+    if (!(mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height)) {
+        touchUserIsScrolling = true;
+    }
+
     if (!justZoomed) {
         return touchMoved();
     }
+
     return false;
 }
 
@@ -311,8 +327,8 @@ function mouseWheel(e) {
 
 function dream(prompt, img, steps) {
     if (playing) {
-        // Don't dream if playing, just pause
-        playing = false
+        // Don't dream if playing
+        alert('Pause playback before zooming')
     } else {
         waiting = true
         let txt2imgButton = document.querySelector('#txt2imgButton');
