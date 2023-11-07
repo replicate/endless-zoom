@@ -11,10 +11,12 @@ let size = 256;
 let playing = false;
 var waiting = false;
 
+// The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
 // so that we only generate the first time
 let justZoomed = false;
 let touchUserIsScrolling = false;
+let center = { x: 0, y: 0 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -22,6 +24,7 @@ function setup() {
     let canvas = createCanvas(512, 512);
     pixelDensity(1); // Otherwise canvas boundary check breaks for retina displays
     noStroke();
+    rectMode(CENTER);
 
     let container = document.createElement("div");
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
@@ -199,34 +202,40 @@ function mouseReleased() {
         // Check that mouse is in bounds of canvas
         let canvas = document.querySelector('#canvas');
         if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
-            let offscreenCanvas = document.createElement('canvas');
-            offscreenCanvas.width = 512;
-            offscreenCanvas.height = 512;
-            let ctx = offscreenCanvas.getContext('2d');
-
-            // Define the source clipping region (the zoomed-in box)
-            let srcX = mouseX - size / 2;
-            let srcY = mouseY - size / 2;
-            let srcWidth = size;
-            let srcHeight = size;
-
-            // Define the destination region on the canvas
-            let destX = 0;
-            let destY = 0;
-            let destWidth = canvas.width;
-            let destHeight = canvas.height;
-
-            // Draw the original image onto the offscreen canvas, zoomed
-            ctx.drawImage(canvas, srcX, srcY, srcWidth, srcHeight, destX, destY, destWidth, destHeight);
-
-            // Get the data URI from the resized offscreen canvas
-            let img = offscreenCanvas.toDataURL("image/jpeg");
-
-            let prompt = document.querySelector('#promptInput').value;
-            let steps = parseInt(document.querySelector('#steps').value);
-            dream(prompt, img, steps);
+            dreamFromCenterAndSize({ x: mouseX, y: mouseY }, size);
         }
     }
+}
+
+function dreamFromCenterAndSize(position, size) {
+    let offscreenCanvas = document.createElement('canvas');
+    offscreenCanvas.width = 512;
+    offscreenCanvas.height = 512;
+    let ctx = offscreenCanvas.getContext('2d');
+
+    let srcX = position.x - size / 2;
+    let srcY = position.y - size / 2;
+
+    // Define the destination region on the canvas
+    let destX = 0;
+    let destY = 0;
+    let destWidth = canvas.width;
+    let destHeight = canvas.height;
+
+    // Draw the original image onto the offscreen canvas, zoomed
+    clear();
+    image(currentImage, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(canvas, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
+    drawCursor(position);
+    console.log(position);
+
+    // Get the data URI from the resized offscreen canvas
+    let img = offscreenCanvas.toDataURL("image/jpeg");
+    console.log(img)
+
+    let prompt = document.querySelector('#promptInput').value;
+    let steps = parseInt(document.querySelector('#steps').value);
+    dream(prompt, img, steps);
 }
 
 function drawSquareBox(centerX, centerY, side) {
@@ -275,6 +284,9 @@ function touchMoved() {
                 drawCursor(center);
                 return false;
             }
+            if (touches.length === 1) {
+                center = { x: touches[0].x, y: touches[0].y };
+            }
             mouseMoved();
             return true;
         }
@@ -285,16 +297,19 @@ function touchMoved() {
 function touchEnded() {
     if (justZoomed) {
         justZoomed = false;
-        return false
-    }
-    if (touches.length === 1) {
-        justZoomed = true;
+        return false;
     }
     if (touches.length === 0 & touchUserIsScrolling) {
         touchUserIsScrolling = false;
         return true;
     }
-    return mouseReleased();
+    if (touches.length === 1) {
+        justZoomed = true;
+    }
+    if (!waiting) {
+        dreamFromCenterAndSize(center, size);
+        return false;
+    }
 }
 
 function touchStarted() {
