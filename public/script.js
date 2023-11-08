@@ -366,44 +366,6 @@ function zoomCanvas(position, size, frame, frames) {
     }
 }
 
-// function convertB64ToAnimatedGif(array_of_b64_images) {
-//     // const gif_canvas = document.createElement('canvas');
-//     // const ctx = gif_canvas.getContext('2d');
-//     const gif = new GIF({
-//         workers: 2,
-//         quality: 1,
-//         width: imageDimensions.x,
-//         height: imageDimensions.y,
-//         debug: true
-//     });
-
-//     gif.freeWorkers.push(new Worker('./gif.worker.js'));
-
-//     // Draw each JPEG frame on the canvas and add it to the animated GIF
-//     array_of_b64_images.forEach((data_uri) => {
-//         const image = new Image();
-//         image.src = data_uri;
-//         // ctx.drawImage(image, 0, 0);
-//         image.addEventListener('load', () => {
-//             gif.addFrame(image, { delay: 200 });
-//         });
-//     });
-
-//     let gif_url;
-//     gif.on('start', function () {
-//         console.log('starting');
-//     });
-//     gif.on('progress', function (p) {
-//         console.log("Rendering " + images.length + " frame(s) at q" + gif.options.quality + "... " + (Math.round(p * 100)) + "%");
-//     });
-//     gif.on('finished', (blob) => { gif_url = URL.createObjectURL(blob) })
-
-//     gif.render();
-//     // Return the animated GIF as a base64 string
-//     // return gif_url
-//     return gif
-// }
-
 function drawClock(color) {
     // draw clock to indicate waiting
     stroke(color);
