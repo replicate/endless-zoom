@@ -7,13 +7,14 @@ let endpoint = replicateEndpoint;
 // It would be great to make this all less stateful, but for now there are a lot of global variables
 let images = [];
 let currentImage;
-let size = 256;
 let playing = false;
 var waiting = false;
 let bufferForZooming;
 let canvas;
 let canvasEl;
-let imageDimensions = { x: 768, y: 768 };
+let imageDimensions = { x: 768, y: 512 };
+let size = { x: 256 };
+size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
 
 // The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
@@ -219,10 +220,10 @@ function zoomCanvas(position, size, frame, frames) {
     let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: imageDimensions.x, y: 0 }, { x: 0, y: imageDimensions.y }, { x: imageDimensions.x, y: imageDimensions.y }]
 
     let [destinationTopLeft, destinationTopRight, destinationBottomLeft, destinationBottomRight] = [
-        { x: position.x - size / 2, y: position.y - size / 2 },
-        { x: position.x + size / 2, y: position.y - size / 2 },
-        { x: position.x - size / 2, y: position.y + size / 2 },
-        { x: position.x + size / 2, y: position.y + size / 2 }
+        { x: position.x - size.x / 2, y: position.y - size.y / 2 },
+        { x: position.x + size.x / 2, y: position.y - size.y / 2 },
+        { x: position.x - size.x / 2, y: position.y + size.y / 2 },
+        { x: position.x + size.x / 2, y: position.y + size.y / 2 }
     ]
 
     let [topLeft, topRight, bottomLeft, bottomRight] = [
@@ -269,8 +270,8 @@ function dreamFromCenterAndSize(position, size) {
     }
     let initImageBuffer = createGraphics(imageDimensions.x, imageDimensions.y);
 
-    let srcX = Math.floor(position.x - size / 2);
-    let srcY = Math.floor(position.y - size / 2);
+    let srcX = Math.floor(position.x - size.x / 2);
+    let srcY = Math.floor(position.y - size.y / 2);
 
     // Define the destination region on the canvas
     let destX = 0;
@@ -280,11 +281,10 @@ function dreamFromCenterAndSize(position, size) {
 
     // Draw the original image onto the image buffer, zoomed
     loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
-        initImageBuffer.copy(loaded_img, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
+        initImageBuffer.copy(loaded_img, srcX, srcY, size.x, size.y, destX, destY, destWidth, destHeight);
 
         // Get the data URI from the resized offscreen canvas
         let img = initImageBuffer.canvas.toDataURL("image/jpeg");
-        console.log(img)
 
         let prompt = document.querySelector('#promptInput').value;
         let steps = parseInt(document.querySelector('#steps').value);
@@ -295,12 +295,12 @@ function dreamFromCenterAndSize(position, size) {
     });
 }
 
-function drawSquareBox(centerX, centerY, side) {
+function drawBox(centerX, centerY, sideX, sideY) {
     rectMode(CENTER);
     noFill();
     strokeWeight(4);
     stroke('black');
-    rect(centerX, centerY, side, side);
+    rect(centerX, centerY, sideX, sideY);
     noStroke();
 }
 
@@ -316,7 +316,7 @@ function drawCursor(position) {
     if (position === undefined) {
         position = { x: mouseX, y: mouseY }
     }
-    drawSquareBox(position.x, position.y, size);
+    drawBox(position.x, position.y, size.x, size.y);
 }
 
 function mouseMoved() {
@@ -333,7 +333,9 @@ function touchMoved() {
     if ((mouseInCanvas()) & !touchUserIsScrolling) {
         if (!justZoomed) {
             if (touches.length === 2) {
-                size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
+                let distance = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
+                size.x = Math.floor(distance);
+                size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
                 center = { x: touches[0].x + (touches[1].x - touches[0].x) / 2, y: touches[0].y + (touches[1].y - touches[0].y) / 2 }
 
                 drawCursor(center);
@@ -382,12 +384,15 @@ function touchStarted() {
 function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
     if (mouseInCanvas()) {
-        if ((size + e.delta) > imageDimensions.x) {
-            size = imageDimensions.x;
-        } else if ((size + e.delta) < 50) {
-            size = 50;
+        if ((size.x + e.delta) > imageDimensions.x) {
+            size.x = imageDimensions.x;
+            size.y = imageDimensions.y;
+        } else if ((size.x + e.delta) < 50) {
+            size.x = 50;
+            size.y = Math.floor(50 * imageDimensions.y / imageDimensions.x);
         } else {
-            size = size + e.delta;
+            size.x = Math.floor(size.x + e.delta);
+            size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
         }
         drawCursor();
         return false;
