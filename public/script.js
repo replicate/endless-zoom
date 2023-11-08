@@ -12,7 +12,7 @@ var waiting = false;
 let bufferForZooming;
 let canvas;
 let canvasEl;
-let imageDimensions = { x: 768, y: 512 };
+let imageDimensions = { x: 512, y: 512 };
 let size = { x: 256 };
 size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
 
@@ -227,6 +227,7 @@ function setup() {
         historyContainer.style.display = "none";
         dream(promptInput.value, undefined, parseInt(steps.value));
         drawCursor();
+        drawClock('#333333');
     });
     formContainer.appendChild(txt2imgButton);
 
@@ -317,11 +318,29 @@ function zoomCanvas(position, size, frame, frames) {
         });
     } else {
         image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+
+        drawClock('#BBBBBB');
     }
+
     if (frame < frames) {
         // 50 fps (roughly)
         setTimeout(() => { window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames)) }, 1000 / 50);
     }
+}
+
+function drawClock(color) {
+    // draw clock to indicate waiting
+    stroke(color);
+    strokeWeight(3);
+    let center = { x: canvas.width - 40, y: canvas.height - 40 };
+    let diameter = 20;
+    let bigHandLength = diameter * 0.3;
+    let smallHandLength = bigHandLength * 0.7;
+    let angle = 0.2 * Math.PI
+    circle(center.x, center.y, diameter);
+    line(center.x, center.y, center.x, center.y - bigHandLength);
+    line(center.x, center.y, center.x + Math.cos(angle) * smallHandLength, center.y + Math.sin(angle) * smallHandLength);
+    noStroke();
 }
 
 function dreamFromCenterAndSize(position, size) {
@@ -354,7 +373,7 @@ function dreamFromCenterAndSize(position, size) {
             dream(prompt, img, steps);
 
             // Zoom the canvas in (while waiting for the dream)
-            zoomCanvas(position, size, 1, 10);
+            zoomCanvas(position, size, 1, 100);
         });
     } else {
         let prompt = document.querySelector('#promptInput').value;
@@ -398,7 +417,7 @@ function mouseMoved() {
 }
 
 function touchMoved() {
-    if ((mouseInCanvas()) & !touchUserIsScrolling) {
+    if ((mouseInCanvas()) & !touchUserIsScrolling & !waiting) {
         if (!justZoomed) {
             if (touches.length === 2) {
                 let distance = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
@@ -440,9 +459,10 @@ function touchEnded() {
 function touchStarted() {
     if (!(mouseInCanvas())) {
         touchUserIsScrolling = true;
+        return true;
     }
 
-    if (!justZoomed) {
+    if (!justZoomed & !waiting) {
         return touchMoved();
     }
 
