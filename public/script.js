@@ -196,26 +196,47 @@ function setup() {
     let downloadButton = document.createElement("button");
     downloadButton.innerHTML = "Download Images"
     downloadButton.addEventListener("click", () => {
-
-        async function toDataURL(url) {
-            const blob = await fetch(url).then(res => res.blob());
-            return URL.createObjectURL(blob);
-        }
-
-        async function download(url, filename) {
-            const a = document.createElement("a");
-            a.href = await toDataURL(url);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
         for (const [i, im_url] of images.entries()) {
-            download(im_url, `image_${i.toString().padStart(3, '0')}.png`);
+            download(im_url, `image_${i.toString().padStart(3, '0')}.png`, true);
         }
     });
     historyInnerContainer.appendChild(downloadButton);
+
+    let gifButton = document.createElement("button");
+    gifButton.innerHTML = "Download .gif"
+    gifButton.addEventListener("click", () => {
+        fetch("/api/gif", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
+        }).then((r) => r.json())
+            .then((data) => {
+                download(data, "endless_zoom.gif", false);
+            });
+    });
+    historyInnerContainer.appendChild(gifButton);
+
+
+    let zipButton = document.createElement("button");
+    zipButton.innerHTML = "Download .zip"
+    zipButton.addEventListener("click", () => {
+        console.log(images)
+        fetch("/api/zip", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images })
+        }).then((r) => r.json())
+            .then((data) => {
+                console.log('hi');
+                console.log(data);
+                download(data, "endless_zoom.zip", true);
+            });
+    });
+    historyInnerContainer.appendChild(zipButton);
 
 
     let txt2imgButton = document.createElement("button");
@@ -247,6 +268,23 @@ function setup() {
 
 function draw() {
 
+}
+
+
+async function toDataURL(url) {
+    const blob = await fetch(url).then(res => res.blob());
+    return URL.createObjectURL(blob);
+}
+
+async function download(url, filename, forceDownload) {
+    forceDownload = forceDownload || false;
+    const a = document.createElement("a");
+    a.href = forceDownload ? await toDataURL(url) : url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.setAttribute('_target', 'blank')
+    document.body.removeChild(a);
 }
 
 function mouseInCanvas() {
@@ -532,7 +570,7 @@ function dream(prompt, img, steps, width, height) {
                 };
 
                 // Add current image to history
-                images.push(data_uri);
+                images.push(data_uri[0]);
                 img.frameNumber = images.length;
                 currentImage = img;
 
