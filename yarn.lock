@@ -2205,10 +2205,10 @@
     "define-properties" "^1.1.3"
     "functions-have-names" "^1.2.2"
 
-"replicate@^0.12.3":
-  "integrity" "sha512-HVWKPoVhWVTONlWk+lUXmq9Vy2J8MxBJMtDBQq3dA5uq71ZzKTh0xvJfvzW4+VLBjhBeL7tkdua6hZJmKfzAPQ=="
-  "resolved" "https://registry.npmjs.org/replicate/-/replicate-0.12.3.tgz"
-  "version" "0.12.3"
+"replicate@^0.21.1":
+  "integrity" "sha512-ftR416+tuD55u6Rz0s5QsxoC2ZasslyFg9jxytirPhqFQwTQy9arU0vF29811t4iws8cMc+neL0IUzyq0pFlkQ=="
+  "resolved" "https://registry.npmjs.org/replicate/-/replicate-0.21.1.tgz"
+  "version" "0.21.1"
 
 "request@^2.88.2":
   "integrity" "sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw=="
