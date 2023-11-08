@@ -10,6 +10,9 @@ let currentImage;
 let size = 256;
 let playing = false;
 var waiting = false;
+let bufferForZooming;
+let canvas;
+let canvasEl;
 
 // The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
@@ -21,7 +24,10 @@ let center = { x: 0, y: 0 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
-    let canvas = createCanvas(512, 512);
+    canvas = createCanvas(512, 512);
+    // bufferForZooming = createGraphics(512 * window.devicePixelRatio, 512 * window.devicePixelRatio);
+    bufferForZooming = createGraphics(512, 512)
+    // bufferForZooming.pixelDensity(1);
     pixelDensity(1); // Otherwise canvas boundary check breaks for retina displays
     noStroke();
     rectMode(CENTER);
@@ -35,7 +41,7 @@ function setup() {
 
     canvas.parent("container");
     canvas.id("canvas");
-    let canvasEl = document.querySelector('#canvas');
+    canvasEl = document.querySelector('#canvas');
     // canvasEl.addEventListener("pointermove", pointermoveHandler);
     canvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
 
@@ -200,14 +206,65 @@ function frameNumberToCanvas(frameNumber) {
 function mouseReleased() {
     if (!waiting) {
         // Check that mouse is in bounds of canvas
-        let canvas = document.querySelector('#canvas');
-        if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
+        if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
             dreamFromCenterAndSize({ x: mouseX, y: mouseY }, size);
         }
     }
 }
 
+function zoomCanvas(position, size, frame, frames) {
+    if (!waiting) { return }
+
+    let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: 512, y: 0 }, { x: 0, y: 512 }, { x: 512, y: 512 }]
+
+    let [destinationTopLeft, destinationTopRight, destinationBottomLeft, destinationBottomRight] = [
+        { x: position.x - size / 2, y: position.y - size / 2 },
+        { x: position.x + size / 2, y: position.y - size / 2 },
+        { x: position.x - size / 2, y: position.y + size / 2 },
+        { x: position.x + size / 2, y: position.y + size / 2 }
+    ]
+
+    let [topLeft, topRight, bottomLeft, bottomRight] = [
+        { x: originalTopLeft.x * (1 - (frame / frames)) + destinationTopLeft.x * (frame / frames), y: originalTopLeft.y * (1 - (frame / frames)) + destinationTopLeft.y * (frame / frames) },
+        { x: originalTopRight.x * (1 - (frame / frames)) + destinationTopRight.x * (frame / frames), y: originalTopRight.y * (1 - (frame / frames)) + destinationTopRight.y * (frame / frames) },
+        { x: originalBottomLeft.x * (1 - (frame / frames)) + destinationBottomLeft.x * (frame / frames), y: originalBottomLeft.y * (1 - (frame / frames)) + destinationBottomLeft.y * (frame / frames) },
+        { x: originalBottomRight.x * (1 - (frame / frames)) + destinationBottomRight.x * (frame / frames), y: originalBottomRight.y * (1 - (frame / frames)) + destinationBottomRight.y * (frame / frames) }
+    ]
+
+
+    let srcX = topLeft.x;
+    let srcY = topLeft.y;
+    let srcWidth = (topRight.x - topLeft.x);
+    let srcHeight = (bottomLeft.y - topLeft.y);
+
+    // Define the destination region on the canvas
+    let destX = 0;
+    let destY = 0;
+    let destWidth = canvas.width;
+    let destHeight = canvas.height;
+
+    if (frame === 1) {
+        loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
+            // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
+            loaded_img.resize(512, 512);
+            bufferForZooming.clear();
+            bufferForZooming.copy(loaded_img, 0, 0, 512, 512, 0, 0, 512, 512);
+            image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+        });
+    } else {
+        image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+    }
+    if (frame < frames) {
+        window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames));
+    }
+}
+
 function dreamFromCenterAndSize(position, size) {
+    if (playing) {
+        // Don't dream if playing
+        alert('Pause playback before zooming');
+        return;
+    }
     let offscreenCanvas = document.createElement('canvas');
     offscreenCanvas.width = 512;
     offscreenCanvas.height = 512;
@@ -224,18 +281,19 @@ function dreamFromCenterAndSize(position, size) {
 
     // Draw the original image onto the offscreen canvas, zoomed
     clear();
-    image(currentImage, 0, 0, canvas.width, canvas.height);
-    ctx.drawImage(canvas, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
+    image(currentImage, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+    ctx.drawImage(canvasEl, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
     drawCursor(position);
-    console.log(position);
 
     // Get the data URI from the resized offscreen canvas
     let img = offscreenCanvas.toDataURL("image/jpeg");
-    console.log(img)
 
     let prompt = document.querySelector('#promptInput').value;
     let steps = parseInt(document.querySelector('#steps').value);
     dream(prompt, img, steps);
+
+    // Zoom the canvas in (while waiting for the dream)
+    zoomCanvas(position, size, 1, 200);
 }
 
 function drawSquareBox(centerX, centerY, side) {
@@ -248,13 +306,12 @@ function drawSquareBox(centerX, centerY, side) {
 }
 
 function drawCursor(position) {
-    let canvas = document.querySelector('#canvas')
     // Clear the canvas
     clear();
     if (images.length > 0) {
         // Redraw the image on the canvas
         let img = currentImage;
-        image(img, 0, 0, canvas.width, canvas.height)
+        image(img, 0, 0, canvasEl.width, canvasEl.height)
     }
     // Draw cursor
     if (position === undefined) {
@@ -265,8 +322,7 @@ function drawCursor(position) {
 
 function mouseMoved() {
     // Check that mouse is in bounds of canvas
-    let canvas = document.querySelector('#canvas');
-    if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
+    if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
         // Check not in playback or waiting for generation
         if (!playing & !waiting) {
             drawCursor();
@@ -275,7 +331,7 @@ function mouseMoved() {
 }
 
 function touchMoved() {
-    if ((mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) & !touchUserIsScrolling) {
+    if ((mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) & !touchUserIsScrolling) {
         if (!justZoomed) {
             if (touches.length === 2) {
                 size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
@@ -306,14 +362,14 @@ function touchEnded() {
     if (touches.length === 1) {
         justZoomed = true;
     }
-    if (!waiting) {
+    if (!waiting & !playing) {
         dreamFromCenterAndSize(center, size);
         return false;
     }
 }
 
 function touchStarted() {
-    if (!(mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height)) {
+    if (!(mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height)) {
         touchUserIsScrolling = true;
     }
 
@@ -326,8 +382,7 @@ function touchStarted() {
 
 function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
-    let canvas = document.querySelector('#canvas');
-    if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
+    if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
         if ((size + e.delta) > 512) {
             size = 512;
         } else if ((size + e.delta) < 50) {
@@ -341,62 +396,56 @@ function mouseWheel(e) {
 }
 
 function dream(prompt, img, steps) {
-    if (playing) {
-        // Don't dream if playing
-        alert('Pause playback before zooming')
-    } else {
-        waiting = true
-        let txt2imgButton = document.querySelector('#txt2imgButton');
-        txt2imgButton.disabled = true;
-        let canvas = document.querySelector('#canvas');
-        let input = {
-            prompt: prompt,
-            steps: steps || 1
-        }
-        if (img) {
-            input['image'] = img
-        }
-
-
-        let historySlider = document.querySelector('#historySlider');
-
-        historySlider.max = currentImage.frameNumber;
-        historySlider.value = currentImage.frameNumber;
-
-        let startTime = Date.now();
-        fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ input })
-        }).then((r) => r.json())
-            .then((data) => {
-                console.log(`Generated in: ${Date.now() - startTime} ms`);
-                let data_uri = data.output;
-                loadImage(data_uri, (img) => {
-                    image(img, 0, 0, canvas.width, canvas.height);
-
-                    // Remove history after the (previous) image
-                    images = images.slice(0, currentImage.frameNumber);
-
-                    // Add current image to history
-                    images.push(data_uri);
-                    img.frameNumber = images.length;
-                    currentImage = img;
-
-                    historySlider.max = images.length;
-                    historySlider.value = images.length;
-                    if (images.length > 1) {
-                        let historyContainer = document.querySelector('#historyContainer');
-                        historyContainer.style.display = "flex";
-                    }
-                });
-            }).then(() => {
-
-                waiting = false;
-                txt2imgButton.disabled = false;
-            });
+    waiting = true
+    let txt2imgButton = document.querySelector('#txt2imgButton');
+    txt2imgButton.disabled = true;
+    let input = {
+        prompt: prompt,
+        steps: steps || 1
     }
+    if (img) {
+        input['image'] = img
+    }
+
+
+    let historySlider = document.querySelector('#historySlider');
+
+    historySlider.max = currentImage.frameNumber;
+    historySlider.value = currentImage.frameNumber;
+
+    let startTime = Date.now();
+    fetch(endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ input })
+    }).then((r) => r.json())
+        .then((data) => {
+            console.log(`Generated in: ${Date.now() - startTime} ms`);
+            let data_uri = data.output;
+            loadImage(data_uri, (img) => {
+                image(img, 0, 0, canvasEl.width, canvasEl.height);
+
+                // Remove history after the (previous) image
+                images = images.slice(0, currentImage.frameNumber);
+
+                // Add current image to history
+                images.push(data_uri);
+                img.frameNumber = images.length;
+                currentImage = img;
+
+                historySlider.max = images.length;
+                historySlider.value = images.length;
+                if (images.length > 1) {
+                    let historyContainer = document.querySelector('#historyContainer');
+                    historyContainer.style.display = "flex";
+                }
+            });
+        }).then(() => {
+
+            waiting = false;
+            txt2imgButton.disabled = false;
+        });
 
 }
