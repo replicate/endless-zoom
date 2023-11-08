@@ -10,8 +10,10 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
+    "canvas": "^2.11.2",
     "eslint": "8.49.0",
     "eslint-config-next": "13.0.7",
+    "gif-encoder-2": "^1.0.5",
     "next": "^14.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

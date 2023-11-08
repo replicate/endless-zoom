@@ -196,25 +196,48 @@ function setup() {
     let downloadButton = document.createElement("button");
     downloadButton.innerHTML = "Download Images"
     downloadButton.addEventListener("click", () => {
-
-        async function toDataURL(url) {
-            const blob = await fetch(url).then(res => res.blob());
-            return URL.createObjectURL(blob);
-        }
-
-        async function download(url, filename) {
-            const a = document.createElement("a");
-            a.href = await toDataURL(url);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
         for (const [i, im_url] of images.entries()) {
-            download(im_url, `image_${i.toString().padStart(3, '0')}.png`);
+            download(im_url, `image_${i.toString().padStart(3, '0')}.png`, true);
         }
     });
+    historyInnerContainer.appendChild(downloadButton);
+
+
+
+    let gifButton = document.createElement("button");
+    gifButton.innerHTML = "Download .gif"
+    gifButton.addEventListener("click", () => {
+        fetch("/api/gif", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
+        }).then((r) => r.json())
+            .then((data) => {
+                download(data, "endless_zoom.gif", false);
+            });
+    });
+    historyInnerContainer.appendChild(gifButton);
+
+    // async function toDataURL(url) {
+    //     const blob = await fetch(url).then(res => res.blob());
+    //     return URL.createObjectURL(blob);
+    // }
+
+    // async function download(url, filename) {
+    //     const a = document.createElement("a");
+    //     a.href = await toDataURL(url);
+    //     a.download = filename;
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     document.body.removeChild(a);
+    // }
+
+    // for (const [i, im_url] of images.entries()) {
+    //     download(im_url, `image_${i.toString().padStart(3, '0')}.png`);
+    // }
+    // });
     historyInnerContainer.appendChild(downloadButton);
 
 
@@ -247,6 +270,23 @@ function setup() {
 
 function draw() {
 
+}
+
+
+async function toDataURL(url) {
+    const blob = await fetch(url).then(res => res.blob());
+    return URL.createObjectURL(blob);
+}
+
+async function download(url, filename, forceDownload) {
+    forceDownload = forceDownload || false;
+    const a = document.createElement("a");
+    a.href = forceDownload ? await toDataURL(url) : url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.setAttribute('_target', 'blank')
+    document.body.removeChild(a);
 }
 
 function mouseInCanvas() {
@@ -327,6 +367,44 @@ function zoomCanvas(position, size, frame, frames) {
         setTimeout(() => { window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames)) }, 1000 / 50);
     }
 }
+
+// function convertB64ToAnimatedGif(array_of_b64_images) {
+//     // const gif_canvas = document.createElement('canvas');
+//     // const ctx = gif_canvas.getContext('2d');
+//     const gif = new GIF({
+//         workers: 2,
+//         quality: 1,
+//         width: imageDimensions.x,
+//         height: imageDimensions.y,
+//         debug: true
+//     });
+
+//     gif.freeWorkers.push(new Worker('./gif.worker.js'));
+
+//     // Draw each JPEG frame on the canvas and add it to the animated GIF
+//     array_of_b64_images.forEach((data_uri) => {
+//         const image = new Image();
+//         image.src = data_uri;
+//         // ctx.drawImage(image, 0, 0);
+//         image.addEventListener('load', () => {
+//             gif.addFrame(image, { delay: 200 });
+//         });
+//     });
+
+//     let gif_url;
+//     gif.on('start', function () {
+//         console.log('starting');
+//     });
+//     gif.on('progress', function (p) {
+//         console.log("Rendering " + images.length + " frame(s) at q" + gif.options.quality + "... " + (Math.round(p * 100)) + "%");
+//     });
+//     gif.on('finished', (blob) => { gif_url = URL.createObjectURL(blob) })
+
+//     gif.render();
+//     // Return the animated GIF as a base64 string
+//     // return gif_url
+//     return gif
+// }
 
 function drawClock(color) {
     // draw clock to indicate waiting
