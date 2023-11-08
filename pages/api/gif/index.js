@@ -5,7 +5,6 @@ async function convertB64ToAnimatedGif(array_of_b64_images, width, height) {
     return new Promise(async resolve1 => {
         const canvas = createCanvas(width, height)
         const ctx = canvas.getContext('2d');
-        // const gif = new GIF();
         const encoder = new GIFEncoder(width, height);
         encoder.setDelay(500);
         encoder.start(); // starts the encoder
