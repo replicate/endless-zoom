@@ -70,7 +70,7 @@ function setup() {
     promptInput.setAttribute("style", "margin: 0 auto;");
     promptAndSteps.appendChild(promptInput);
 
-    // Text input box for number of steps
+    // Input box for number of steps
     let stepsLabel = document.createElement("label");
     stepsLabel.setAttribute("for", "steps");
     stepsLabel.innerText = "Steps:";
@@ -84,6 +84,68 @@ function setup() {
     steps.setAttribute("id", "steps");
     steps.setAttribute("style", "margin: 0 auto;");
     promptAndSteps.appendChild(steps);
+
+
+
+    let widthAndHeightMessage = document.createElement("p")
+    widthAndHeightMessage.innerHTML = "N.B. changing width or height will lose your history"
+    formContainer.appendChild(widthAndHeightMessage)
+
+    let widthAndHeight = document.createElement("div");
+    widthAndHeight.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    formContainer.appendChild(widthAndHeight)
+
+    // Input box for width
+    let widthLabel = document.createElement("label");
+    widthLabel.setAttribute("for", "width");
+    widthLabel.innerText = "Width:";
+    widthAndHeight.appendChild(widthLabel);
+
+    let width = document.createElement("input");
+    width.setAttribute("type", "number");
+    width.setAttribute("value", imageDimensions.x);
+    width.setAttribute("min", 256);
+    width.setAttribute("max", 1024);
+    width.setAttribute("step", 64);
+    width.setAttribute("id", "width");
+    width.setAttribute("style", "margin: 0 auto;");
+    width.addEventListener('input', (e) => {
+        imageDimensions.x = parseInt(e.target.value);
+        resizeCanvas(imageDimensions.x, canvas.height);
+        bufferForZooming.resizeCanvas(imageDimensions.x, canvas.height);
+        size.x = Math.floor(imageDimensions.x / 2);
+        size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
+        images = [];
+        currentImage = undefined;
+        historyContainer.style.display = "none";
+    });
+    widthAndHeight.appendChild(width);
+
+    // Input box for height
+    let heightLabel = document.createElement("label");
+    heightLabel.setAttribute("for", "height");
+    heightLabel.innerText = "Height:";
+    widthAndHeight.appendChild(heightLabel);
+
+    let height = document.createElement("input");
+    height.setAttribute("type", "number");
+    height.setAttribute("value", imageDimensions.y);
+    height.setAttribute("min", 256);
+    height.setAttribute("max", 1024);
+    height.setAttribute("step", 64);
+    height.setAttribute("id", "height");
+    height.setAttribute("style", "margin: 0 auto;");
+    height.addEventListener('input', (e) => {
+        imageDimensions.y = parseInt(e.target.value);
+        resizeCanvas(canvas.width, imageDimensions.y);
+        bufferForZooming.resizeCanvas(canvas.width, imageDimensions.y);
+        size.x = Math.floor(imageDimensions.x / 2);
+        size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
+        images = [];
+        currentImage = undefined;
+        historyContainer.style.display = "none";
+    });
+    widthAndHeight.appendChild(height);
 
     // Slider that scrubs through history
     let historyContainer = document.createElement("div");
@@ -163,7 +225,8 @@ function setup() {
     txt2imgButton.addEventListener("click", (e) => {
         images = []
         historyContainer.style.display = "none";
-        dream(promptInput.value, undefined, steps.value);
+        dream(promptInput.value, undefined, parseInt(steps.value));
+        drawCursor();
     });
     formContainer.appendChild(txt2imgButton);
 
@@ -177,9 +240,8 @@ function setup() {
                 currentImage = img;
             });
     }, 10);
+    resizeCanvas(imageDimensions.x, imageDimensions.y);
     drawCursor();
-
-
 }
 
 function draw() {
@@ -268,38 +330,44 @@ function dreamFromCenterAndSize(position, size) {
         alert('Pause playback before zooming');
         return;
     }
-    let initImageBuffer = createGraphics(imageDimensions.x, imageDimensions.y);
+    if (images.length > 0) {
+        let initImageBuffer = createGraphics(imageDimensions.x, imageDimensions.y);
 
-    let srcX = Math.floor(position.x - size.x / 2);
-    let srcY = Math.floor(position.y - size.y / 2);
+        let srcX = Math.floor(position.x - size.x / 2);
+        let srcY = Math.floor(position.y - size.y / 2);
 
-    // Define the destination region on the canvas
-    let destX = 0;
-    let destY = 0;
-    let destWidth = canvas.width;
-    let destHeight = canvas.height;
+        // Define the destination region on the canvas
+        let destX = 0;
+        let destY = 0;
+        let destWidth = canvas.width;
+        let destHeight = canvas.height;
 
-    // Draw the original image onto the image buffer, zoomed
-    loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
-        initImageBuffer.copy(loaded_img, srcX, srcY, size.x, size.y, destX, destY, destWidth, destHeight);
+        // Draw the original image onto the image buffer, zoomed
+        loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
+            initImageBuffer.copy(loaded_img, srcX, srcY, size.x, size.y, destX, destY, destWidth, destHeight);
 
-        // Get the data URI from the resized offscreen canvas
-        let img = initImageBuffer.canvas.toDataURL("image/jpeg");
+            // Get the data URI from the resized offscreen canvas
+            let img = initImageBuffer.canvas.toDataURL("image/jpeg");
 
+            let prompt = document.querySelector('#promptInput').value;
+            let steps = parseInt(document.querySelector('#steps').value);
+            dream(prompt, img, steps);
+
+            // Zoom the canvas in (while waiting for the dream)
+            zoomCanvas(position, size, 1, 10);
+        });
+    } else {
         let prompt = document.querySelector('#promptInput').value;
         let steps = parseInt(document.querySelector('#steps').value);
-        dream(prompt, img, steps);
-
-        // Zoom the canvas in (while waiting for the dream)
-        zoomCanvas(position, size, 1, 100);
-    });
+        dream(prompt, undefined, steps);
+    }
 }
 
 function drawBox(centerX, centerY, sideX, sideY) {
     rectMode(CENTER);
     noFill();
     strokeWeight(4);
-    stroke('black');
+    stroke('white');
     rect(centerX, centerY, sideX, sideY);
     noStroke();
 }
@@ -383,7 +451,7 @@ function touchStarted() {
 
 function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
-    if (mouseInCanvas()) {
+    if (mouseInCanvas() & !waiting) {
         if ((size.x + e.delta) > imageDimensions.x) {
             size.x = imageDimensions.x;
             size.y = imageDimensions.y;
@@ -399,15 +467,15 @@ function mouseWheel(e) {
     }
 }
 
-function dream(prompt, img, steps) {
+function dream(prompt, img, steps, width, height) {
     waiting = true
     let txt2imgButton = document.querySelector('#txt2imgButton');
     txt2imgButton.disabled = true;
     let input = {
         prompt: prompt,
         steps: steps || 1,
-        width: imageDimensions.x,
-        height: imageDimensions.y
+        width: width || imageDimensions.x,
+        height: height || imageDimensions.y
     }
     if (img) {
         input['image'] = img
@@ -416,8 +484,13 @@ function dream(prompt, img, steps) {
 
     let historySlider = document.querySelector('#historySlider');
 
-    historySlider.max = currentImage.frameNumber;
-    historySlider.value = currentImage.frameNumber;
+    if (currentImage) {
+        historySlider.max = currentImage.frameNumber;
+        historySlider.value = currentImage.frameNumber;
+    } else {
+        historySlider.max = 1;
+        historySlider.value = 1;
+    }
 
     let startTime = Date.now();
     fetch(endpoint, {
@@ -433,8 +506,10 @@ function dream(prompt, img, steps) {
             loadImage(data_uri, (img) => {
                 image(img, 0, 0, canvasEl.width, canvasEl.height);
 
-                // Remove history after the (previous) image
-                images = images.slice(0, currentImage.frameNumber);
+                if (images.length > 0) {
+                    // Remove history after the (previous) image
+                    images = images.slice(0, currentImage.frameNumber);
+                };
 
                 // Add current image to history
                 images.push(data_uri);
