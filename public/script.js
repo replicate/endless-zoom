@@ -13,6 +13,7 @@ var waiting = false;
 let bufferForZooming;
 let canvas;
 let canvasEl;
+let imageDimensions = { x: 768, y: 768 };
 
 // The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
@@ -24,10 +25,8 @@ let center = { x: 0, y: 0 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
-    canvas = createCanvas(512, 512);
-    // bufferForZooming = createGraphics(512 * window.devicePixelRatio, 512 * window.devicePixelRatio);
-    bufferForZooming = createGraphics(512, 512)
-    // bufferForZooming.pixelDensity(1);
+    canvas = createCanvas(imageDimensions.x, imageDimensions.y);
+    bufferForZooming = createGraphics(imageDimensions.x, imageDimensions.y)
     pixelDensity(1); // Otherwise canvas boundary check breaks for retina displays
     noStroke();
     rectMode(CENTER);
@@ -35,14 +34,12 @@ function setup() {
     let container = document.createElement("div");
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
     container.setAttribute("style", "width: 100%; text-align: center; padding: 1rem; margin: auto auto;");
-    container.setAttribute("width", "512");
     container.setAttribute("id", "container");
     document.body.appendChild(container);
 
     canvas.parent("container");
     canvas.id("canvas");
     canvasEl = document.querySelector('#canvas');
-    // canvasEl.addEventListener("pointermove", pointermoveHandler);
     canvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
 
     let formContainer = document.createElement("div");
@@ -219,7 +216,7 @@ function mouseReleased() {
 function zoomCanvas(position, size, frame, frames) {
     if (!waiting) { return }
 
-    let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: 512, y: 0 }, { x: 0, y: 512 }, { x: 512, y: 512 }]
+    let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: imageDimensions.x, y: 0 }, { x: 0, y: imageDimensions.y }, { x: imageDimensions.x, y: imageDimensions.y }]
 
     let [destinationTopLeft, destinationTopRight, destinationBottomLeft, destinationBottomRight] = [
         { x: position.x - size / 2, y: position.y - size / 2 },
@@ -250,9 +247,9 @@ function zoomCanvas(position, size, frame, frames) {
     if (frame === 1) {
         loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
             // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
-            loaded_img.resize(512, 512);
+            loaded_img.resize(imageDimensions.x, imageDimensions.y);
             bufferForZooming.clear();
-            bufferForZooming.copy(loaded_img, 0, 0, 512, 512, 0, 0, 512, 512);
+            bufferForZooming.copy(loaded_img, 0, 0, imageDimensions.x, imageDimensions.y, 0, 0, imageDimensions.x, imageDimensions.y);
             image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
         });
     } else {
@@ -270,7 +267,7 @@ function dreamFromCenterAndSize(position, size) {
         alert('Pause playback before zooming');
         return;
     }
-    let initImageBuffer = createGraphics(512, 512);
+    let initImageBuffer = createGraphics(imageDimensions.x, imageDimensions.y);
 
     let srcX = Math.floor(position.x - size / 2);
     let srcY = Math.floor(position.y - size / 2);
@@ -385,8 +382,8 @@ function touchStarted() {
 function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
     if (mouseInCanvas()) {
-        if ((size + e.delta) > 512) {
-            size = 512;
+        if ((size + e.delta) > imageDimensions.x) {
+            size = imageDimensions.x;
         } else if ((size + e.delta) < 50) {
             size = 50;
         } else {
@@ -403,7 +400,9 @@ function dream(prompt, img, steps) {
     txt2imgButton.disabled = true;
     let input = {
         prompt: prompt,
-        steps: steps || 1
+        steps: steps || 1,
+        width: imageDimensions.x,
+        height: imageDimensions.y
     }
     if (img) {
         input['image'] = img

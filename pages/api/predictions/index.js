@@ -4,8 +4,6 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 export default async function handler(req, res) {
   if (!process.env.REPLICATE_API_TOKEN) {
     throw new Error(
@@ -18,6 +16,7 @@ export default async function handler(req, res) {
     {
       input: req.body.input,
     });
+  console.log(req.body.input);
 
   if (prediction?.error) {
     res.statusCode = 500;
