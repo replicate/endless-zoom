@@ -445,11 +445,10 @@ function dream(prompt, img, steps) {
                     let historyContainer = document.querySelector('#historyContainer');
                     historyContainer.style.display = "flex";
                 }
-            });
-        }).then(() => {
 
-            waiting = false;
-            txt2imgButton.disabled = false;
+                waiting = false;
+                txt2imgButton.disabled = false;
+            });
         });
 
 }
