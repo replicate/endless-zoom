@@ -188,6 +188,10 @@ function draw() {
 
 }
 
+function mouseInCanvas() {
+    return mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height
+}
+
 function imageToCanvas(im_url, frameNumber) {
     loadImage(
         im_url,
@@ -206,7 +210,7 @@ function frameNumberToCanvas(frameNumber) {
 function mouseReleased() {
     if (!waiting) {
         // Check that mouse is in bounds of canvas
-        if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
+        if (mouseInCanvas()) {
             dreamFromCenterAndSize({ x: mouseX, y: mouseY }, size);
         }
     }
@@ -322,7 +326,7 @@ function drawCursor(position) {
 
 function mouseMoved() {
     // Check that mouse is in bounds of canvas
-    if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
+    if (mouseInCanvas()) {
         // Check not in playback or waiting for generation
         if (!playing & !waiting) {
             drawCursor();
@@ -331,7 +335,7 @@ function mouseMoved() {
 }
 
 function touchMoved() {
-    if ((mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) & !touchUserIsScrolling) {
+    if ((mouseInCanvas()) & !touchUserIsScrolling) {
         if (!justZoomed) {
             if (touches.length === 2) {
                 size = Math.sqrt(Math.pow(touches[0].x - touches[1].x, 2) + Math.pow(touches[0].y - touches[1].y, 2));
@@ -369,7 +373,7 @@ function touchEnded() {
 }
 
 function touchStarted() {
-    if (!(mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height)) {
+    if (!(mouseInCanvas())) {
         touchUserIsScrolling = true;
     }
 
@@ -382,7 +386,7 @@ function touchStarted() {
 
 function mouseWheel(e) {
     // Check that mouse is in bounds of canvas
-    if (mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height) {
+    if (mouseInCanvas()) {
         if ((size + e.delta) > 512) {
             size = 512;
         } else if ((size + e.delta) < 50) {
