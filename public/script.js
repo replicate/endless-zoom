@@ -259,7 +259,8 @@ function zoomCanvas(position, size, frame, frames) {
         image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
     }
     if (frame < frames) {
-        window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames));
+        // 50 fps (roughly)
+        setTimeout(() => { window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames)) }, 1000 / 50);
     }
 }
 
@@ -269,13 +270,10 @@ function dreamFromCenterAndSize(position, size) {
         alert('Pause playback before zooming');
         return;
     }
-    let offscreenCanvas = document.createElement('canvas');
-    offscreenCanvas.width = 512;
-    offscreenCanvas.height = 512;
-    let ctx = offscreenCanvas.getContext('2d');
+    let initImageBuffer = createGraphics(512, 512);
 
-    let srcX = position.x - size / 2;
-    let srcY = position.y - size / 2;
+    let srcX = Math.floor(position.x - size / 2);
+    let srcY = Math.floor(position.y - size / 2);
 
     // Define the destination region on the canvas
     let destX = 0;
@@ -283,21 +281,21 @@ function dreamFromCenterAndSize(position, size) {
     let destWidth = canvas.width;
     let destHeight = canvas.height;
 
-    // Draw the original image onto the offscreen canvas, zoomed
-    clear();
-    image(currentImage, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
-    ctx.drawImage(canvasEl, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
-    drawCursor(position);
+    // Draw the original image onto the image buffer, zoomed
+    loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
+        initImageBuffer.copy(loaded_img, srcX, srcY, size, size, destX, destY, destWidth, destHeight);
 
-    // Get the data URI from the resized offscreen canvas
-    let img = offscreenCanvas.toDataURL("image/jpeg");
+        // Get the data URI from the resized offscreen canvas
+        let img = initImageBuffer.canvas.toDataURL("image/jpeg");
+        console.log(img)
 
-    let prompt = document.querySelector('#promptInput').value;
-    let steps = parseInt(document.querySelector('#steps').value);
-    dream(prompt, img, steps);
+        let prompt = document.querySelector('#promptInput').value;
+        let steps = parseInt(document.querySelector('#steps').value);
+        dream(prompt, img, steps);
 
-    // Zoom the canvas in (while waiting for the dream)
-    zoomCanvas(position, size, 1, 200);
+        // Zoom the canvas in (while waiting for the dream)
+        zoomCanvas(position, size, 1, 100);
+    });
 }
 
 function drawSquareBox(centerX, centerY, side) {
