@@ -236,7 +236,6 @@ function setup() {
     let zipButton = document.createElement("button");
     zipButton.innerHTML = "Download .zip"
     zipButton.addEventListener("click", () => {
-        console.log(images)
         fetch("/api/zip", {
             method: "POST",
             headers: {
@@ -245,8 +244,6 @@ function setup() {
             body: JSON.stringify({ images })
         }).then((r) => r.json())
             .then((data) => {
-                console.log('hi');
-                console.log(data);
                 download(data, "endless_zoom.zip", true);
             });
     });
@@ -571,7 +568,6 @@ function dream(prompt, img, steps, strength, width, height) {
     }
 
     let startTime = Date.now();
-    console.log(input)
     fetch(endpoint, {
         method: "POST",
         headers: {
