@@ -85,7 +85,21 @@ function setup() {
     steps.setAttribute("style", "margin: 0 auto;");
     promptAndSteps.appendChild(steps);
 
+    // Input box for prompt strength
+    let strengthLabel = document.createElement("label");
+    strengthLabel.setAttribute("for", "strength");
+    strengthLabel.innerText = "Prompt Strength:";
+    promptAndSteps.appendChild(strengthLabel);
 
+    let strength = document.createElement("input");
+    strength.setAttribute("type", "number");
+    strength.setAttribute("value", 0.4);
+    strength.setAttribute("min", 0.05);
+    strength.setAttribute("step", 0.05);
+    strength.setAttribute("max", 1.00);
+    strength.setAttribute("id", "strength");
+    strength.setAttribute("style", "margin: 0 auto;");
+    promptAndSteps.appendChild(strength);
 
     let widthAndHeightMessage = document.createElement("p")
     widthAndHeightMessage.innerHTML = "N.B. changing width or height will lose your history"
@@ -246,7 +260,7 @@ function setup() {
     txt2imgButton.addEventListener("click", (e) => {
         images = []
         historyContainer.style.display = "none";
-        dream(promptInput.value, undefined, parseInt(steps.value));
+        dream(promptInput.value, undefined, parseInt(steps.value), strength);
         drawCursor();
         drawClock('#333333');
     });
@@ -411,7 +425,8 @@ function dreamFromCenterAndSize(position, size) {
 
             let prompt = document.querySelector('#promptInput').value;
             let steps = parseInt(document.querySelector('#steps').value);
-            dream(prompt, img, steps);
+            let strength = parseFloat(document.querySelector('#strength').value);
+            dream(prompt, img, steps, strength);
 
             // Zoom the canvas in (while waiting for the dream)
             zoomCanvas(position, size, 1, 100);
@@ -528,7 +543,7 @@ function mouseWheel(e) {
     }
 }
 
-function dream(prompt, img, steps, width, height) {
+function dream(prompt, img, steps, strength, width, height) {
     waiting = true
     let txt2imgButton = document.querySelector('#txt2imgButton');
     txt2imgButton.disabled = true;
@@ -536,7 +551,8 @@ function dream(prompt, img, steps, width, height) {
         prompt: prompt,
         steps: steps || 1,
         width: width || imageDimensions.x,
-        height: height || imageDimensions.y
+        height: height || imageDimensions.y,
+        prompt_strength: strength
     }
     if (img) {
         input['image'] = img
