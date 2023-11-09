@@ -551,11 +551,12 @@ function dream(prompt, img, steps, strength, width, height) {
         prompt: prompt,
         steps: steps || 1,
         width: width || imageDimensions.x,
-        height: height || imageDimensions.y,
-        prompt_strength: strength
+        height: height || imageDimensions.y
     }
     if (img) {
-        input['image'] = img
+        input['image'] = img;
+        input['control_image'] = img;
+        input['prompt_strength'] = strength;
     }
 
 
@@ -570,6 +571,7 @@ function dream(prompt, img, steps, strength, width, height) {
     }
 
     let startTime = Date.now();
+    console.log(input)
     fetch(endpoint, {
         method: "POST",
         headers: {
@@ -579,7 +581,12 @@ function dream(prompt, img, steps, strength, width, height) {
     }).then((r) => r.json())
         .then((data) => {
             console.log(`Generated in: ${Date.now() - startTime} ms`);
-            let data_uri = data.output;
+            let data_uri;
+            if (Array.isArray(data.output)) {
+                data_uri = data.output[0];
+            } else {
+                data_uri = data.output
+            }
             loadImage(data_uri, (img) => {
                 image(img, 0, 0, canvasEl.width, canvasEl.height);
 
@@ -589,7 +596,7 @@ function dream(prompt, img, steps, strength, width, height) {
                 };
 
                 // Add current image to history
-                images.push(data_uri[0]);
+                images.push(data_uri);
                 img.frameNumber = images.length;
                 currentImage = img;
 

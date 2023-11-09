@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   var prediction = await replicate.run(
-    'fofr/latent-consistency-model:92b456763bbd035ef9dda7cc778c9cc8628cb4b48b8af813d541e78565342330',
+    'fofr/latent-consistency-model:cb2224ccab6330e55d5c87f96c68eb07de572a290114abb35758b1ac81895d66',
     {
       input: req.body.input,
     });
