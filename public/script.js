@@ -78,7 +78,7 @@ function setup() {
 
     let steps = document.createElement("input");
     steps.setAttribute("type", "number");
-    steps.setAttribute("value", 1);
+    steps.setAttribute("value", 2);
     steps.setAttribute("min", 1);
     steps.setAttribute("max", 6);
     steps.setAttribute("id", "steps");
@@ -93,7 +93,7 @@ function setup() {
 
     let strength = document.createElement("input");
     strength.setAttribute("type", "number");
-    strength.setAttribute("value", 0.4);
+    strength.setAttribute("value", 0.6);
     strength.setAttribute("min", 0.05);
     strength.setAttribute("step", 0.05);
     strength.setAttribute("max", 1.00);
