@@ -10,8 +10,8 @@ let currentImage;
 let playing = false;
 var waiting = false;
 let bufferForZooming;
-let canvas;
-let canvasEl;
+let p5Canvas;
+let p5CanvasEl;
 let imageDimensions = { x: 512, y: 512 };
 let size = { x: 256 };
 size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
@@ -26,7 +26,7 @@ let center = { x: 0, y: 0 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function setup() {
-    canvas = createCanvas(imageDimensions.x, imageDimensions.y);
+    p5Canvas = createCanvas(imageDimensions.x, imageDimensions.y);
     bufferForZooming = createGraphics(imageDimensions.x, imageDimensions.y)
     pixelDensity(1); // Otherwise canvas boundary check breaks for retina displays
     noStroke();
@@ -38,10 +38,10 @@ function setup() {
     container.setAttribute("id", "container");
     document.body.appendChild(container);
 
-    canvas.parent("container");
-    canvas.id("canvas");
-    canvasEl = document.querySelector('#canvas');
-    canvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
+    p5Canvas.parent("container");
+    p5Canvas.id("p5Canvas");
+    p5CanvasEl = document.querySelector('#p5Canvas');
+    p5CanvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
 
     let formContainer = document.createElement("div");
     formContainer.setAttribute("id", "formContainer");
@@ -52,7 +52,7 @@ function setup() {
     fullscreenButton.setAttribute("src", "https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/fullscreen/default/24px.svg")
     fullscreenButton.setAttribute("id", "fullscreenButton");
     fullscreenButton.setAttribute("style", "cursor: pointer");
-    fullscreenButton.addEventListener("click", (e) => { canvasEl.requestFullscreen() });
+    fullscreenButton.addEventListener("click", (e) => { p5CanvasEl.requestFullscreen() });
     formContainer.appendChild(fullscreenButton);
 
     let promptAndSteps = document.createElement("div");
@@ -125,8 +125,8 @@ function setup() {
     width.setAttribute("style", "margin: 0 auto;");
     width.addEventListener('input', (e) => {
         imageDimensions.x = parseInt(e.target.value);
-        resizeCanvas(imageDimensions.x, canvas.height);
-        bufferForZooming.resizeCanvas(imageDimensions.x, canvas.height);
+        resizeCanvas(imageDimensions.x, p5Canvas.height);
+        bufferForZooming.resizeCanvas(imageDimensions.x, p5Canvas.height);
         size.x = Math.floor(imageDimensions.x / 2);
         size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
         images = [];
@@ -151,8 +151,8 @@ function setup() {
     height.setAttribute("style", "margin: 0 auto;");
     height.addEventListener('input', (e) => {
         imageDimensions.y = parseInt(e.target.value);
-        resizeCanvas(canvas.width, imageDimensions.y);
-        bufferForZooming.resizeCanvas(canvas.width, imageDimensions.y);
+        resizeCanvas(p5Canvas.width, imageDimensions.y);
+        bufferForZooming.resizeCanvas(p5Canvas.width, imageDimensions.y);
         size.x = Math.floor(imageDimensions.x / 2);
         size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
         images = [];
@@ -267,7 +267,7 @@ function setup() {
         data_uri = 'https://replicate.delivery/pbxt/4L6vyIjY6Q64OZlWQTJogKIwvDF1NVvHNKIdleNyG35nbD6IA/out-0.png'
         loadImage(data_uri,
             (img) => {
-                image(img, 0, 0, canvas.width, canvas.height);
+                image(img, 0, 0, p5Canvas.width, p5Canvas.height);
                 images.push(data_uri);
                 img["frameNumber"] = 1;
                 currentImage = img;
@@ -299,14 +299,14 @@ async function download(url, filename, forceDownload) {
 }
 
 function mouseInCanvas() {
-    return mouseX >= 0 && mouseX <= canvasEl.width && mouseY >= 0 && mouseY <= canvasEl.height
+    return mouseX >= 0 && mouseX <= p5CanvasEl.width && mouseY >= 0 && mouseY <= p5CanvasEl.height
 }
 
 function imageToCanvas(im_url, frameNumber) {
     loadImage(
         im_url,
         (img) => {
-            image(img, 0, 0, canvas.width, canvas.height);
+            image(img, 0, 0, p5Canvas.width, p5Canvas.height);
             img["frameNumber"] = frameNumber;
             currentImage = img;
         }
@@ -354,8 +354,8 @@ function zoomCanvas(position, size, frame, frames) {
     // Define the destination region on the canvas
     let destX = 0;
     let destY = 0;
-    let destWidth = canvas.width;
-    let destHeight = canvas.height;
+    let destWidth = p5Canvas.width;
+    let destHeight = p5Canvas.height;
 
     if (frame === 1) {
         loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
@@ -381,7 +381,7 @@ function drawClock(color) {
     // draw clock to indicate waiting
     stroke(color);
     strokeWeight(3);
-    let center = { x: canvas.width - 40, y: canvas.height - 40 };
+    let center = { x: p5Canvas.width - 40, y: p5Canvas.height - 40 };
     let diameter = 20;
     let bigHandLength = diameter * 0.3;
     let smallHandLength = bigHandLength * 0.7;
@@ -407,8 +407,8 @@ function dreamFromCenterAndSize(position, size) {
         // Define the destination region on the canvas
         let destX = 0;
         let destY = 0;
-        let destWidth = canvas.width;
-        let destHeight = canvas.height;
+        let destWidth = p5Canvas.width;
+        let destHeight = p5Canvas.height;
 
         // Draw the original image onto the image buffer, zoomed
         loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
@@ -450,7 +450,7 @@ function drawCursor(position) {
     if (images.length > 0) {
         // Redraw the image on the canvas
         let img = currentImage;
-        image(img, 0, 0, canvasEl.width, canvasEl.height)
+        image(img, 0, 0, p5CanvasEl.width, p5CanvasEl.height)
     }
     // Draw cursor
     if (position === undefined) {
@@ -584,7 +584,7 @@ function dream(prompt, img, steps, strength, width, height) {
                 data_uri = data.output
             }
             loadImage(data_uri, (img) => {
-                image(img, 0, 0, canvasEl.width, canvasEl.height);
+                image(img, 0, 0, p5CanvasEl.width, p5CanvasEl.height);
 
                 if (images.length > 0) {
                     // Remove history after the (previous) image
