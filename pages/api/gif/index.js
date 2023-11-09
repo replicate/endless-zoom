@@ -1,5 +1,5 @@
 import GIFEncoder from 'gif-encoder-2';
-const { createCanvas, Image } = require('canvas')
+const { createCanvas, loadImage } = require('@napi-rs/canvas')
 
 async function convertB64ToAnimatedGif(array_of_b64_images, width, height) {
     return new Promise(async resolve1 => {
@@ -12,13 +12,11 @@ async function convertB64ToAnimatedGif(array_of_b64_images, width, height) {
         // Draw each JPEG frame on the canvas and add it to the animated GIF
         for (const data_uri of array_of_b64_images) {
             await new Promise(resolve3 => {
-                const image = new Image();
-                image.src = data_uri;
-                image.onload = () => {
+                loadImage(data_uri).then((image) => {
                     ctx.drawImage(image, 0, 0);
                     encoder.addFrame(ctx);
                     resolve3();
-                }
+                })
             })
         }
         encoder.finish();
