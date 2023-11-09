@@ -10,7 +10,7 @@
     "test": "npm run lint && npm run build"
   },
   "dependencies": {
-    "canvas": "^2.11.2",
+    "@napi-rs/canvas": "^0.1.44",
     "eslint": "8.49.0",
     "eslint-config-next": "13.0.7",
     "gif-encoder-2": "^1.0.5",
