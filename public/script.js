@@ -401,6 +401,9 @@ function dreamFromCenterAndSize(position, size) {
 
         // Draw the original image onto the image buffer, zoomed
         loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
+            // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
+            loaded_img.resize(imageDimensions.x, imageDimensions.y);
+
             initImageBuffer.copy(loaded_img, srcX, srcY, size.x, size.y, destX, destY, destWidth, destHeight);
 
             // Get the data URI from the resized offscreen canvas
