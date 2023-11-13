@@ -125,7 +125,6 @@ function setup() {
         }).then((r) => r.json())
             .then((data) => {
                 promptInput.value = data;
-                console.log(data)
             });
     });
     promptAndSteps.appendChild(rollPrompt);
@@ -452,7 +451,6 @@ function zoomCanvas(position, size, frame, frames) {
 
             drawClock('#BBBBBB');
         }
-        console.log(destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)
     }
 
     if ((frame - 1) % 75 == 0) {
