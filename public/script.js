@@ -568,44 +568,48 @@ function dream(prompt, img, steps, strength, width, height) {
     }
 
     let startTime = Date.now();
-    fetch(endpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ input })
-    }).then((r) => r.json())
-        .then((data) => {
-            console.log(`Generated in: ${Date.now() - startTime} ms`);
-            let data_uri;
-            if (Array.isArray(data.output)) {
-                data_uri = data.output[0];
-            } else {
-                data_uri = data.output
-            }
-            loadImage(data_uri, (img) => {
-                image(img, 0, 0, p5CanvasEl.width, p5CanvasEl.height);
-
-                if (images.length > 0) {
-                    // Remove history after the (previous) image
-                    images = images.slice(0, currentImage.frameNumber);
-                };
-
-                // Add current image to history
-                images.push(data_uri);
-                img.frameNumber = images.length;
-                currentImage = img;
-
-                historySlider.max = images.length;
-                historySlider.value = images.length;
-                if (images.length > 1) {
-                    let historyContainer = document.querySelector('#historyContainer');
-                    historyContainer.style.display = "flex";
+    function fetchImage() {
+        fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ input })
+        }).then((r) => r.ok ? r.json() : r.json().then(err => Promise.reject(err)))
+            .then((data) => {
+                console.log(`Generated in: ${Date.now() - startTime} ms`);
+                let data_uri;
+                if (Array.isArray(data.output)) {
+                    data_uri = data.output[0];
+                } else {
+                    data_uri = data.output
                 }
+                loadImage(data_uri, (img) => {
+                    image(img, 0, 0, p5CanvasEl.width, p5CanvasEl.height);
 
-                waiting = false;
-                txt2imgButton.disabled = false;
-            });
-        });
+                    if (images.length > 0) {
+                        // Remove history after the (previous) image
+                        images = images.slice(0, currentImage.frameNumber);
+                    };
+
+                    // Add current image to history
+                    images.push(data_uri);
+                    img.frameNumber = images.length;
+                    currentImage = img;
+
+                    historySlider.max = images.length;
+                    historySlider.value = images.length;
+                    if (images.length > 1) {
+                        let historyContainer = document.querySelector('#historyContainer');
+                        historyContainer.style.display = "flex";
+                    }
+
+                    waiting = false;
+                    txt2imgButton.disabled = false;
+                });
+            })
+            .catch((err) => { console.log(err); fetchImage() }); // If error, send again - probably cold boot of model
+    }
+    fetchImage();
 
 }
