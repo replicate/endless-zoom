@@ -288,8 +288,9 @@ function setup() {
             });
     }, 10);
 
-    // Set canvas initial dimensions
-    let deviceAspectRatio = window.screen.width / window.screen.height;
+    // Set canvas initial dimensions to device aspect ratio (always landscape)
+    // Initial loaded (non-generated) image will be slightly wonky, but not enough to matter
+    let deviceAspectRatio = window.screen.width > window.screen.height ? window.screen.width / window.screen.height : window.screen.height / window.screen.width;
     let width_value_tmp = height.value * deviceAspectRatio;
     width_value_tmp -= width_value_tmp % 8;
     if (width_value_tmp <= 1024) {
