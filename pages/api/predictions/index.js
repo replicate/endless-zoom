@@ -14,7 +14,8 @@ export default async function handler(req, res) {
   }
 
   var prediction = await replicate.run(
-    'fofr/latent-consistency-model:cb2224ccab6330e55d5c87f96c68eb07de572a290114abb35758b1ac81895d66',
+    "replicate",
+    "endless-zoom",
     {
       input: req.body.input,
     });
