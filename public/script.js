@@ -155,7 +155,7 @@ function setup() {
     height.setAttribute("value", imageDimensions.y);
     height.setAttribute("min", 256);
     height.setAttribute("max", 1024);
-    height.setAttribute("step", 64);
+    height.setAttribute("step", 8);
     height.setAttribute("id", "height");
     height.setAttribute("style", "margin: 0 auto;");
     height.addEventListener('input', (e) => {
@@ -289,11 +289,18 @@ function setup() {
     }, 10);
 
     // Set canvas initial dimensions
+    width.value = (height.value * window.devicePixelRatio).toFixed(0).toString();
+    imageDimensions.x = parseInt(width.value);
     resizeCanvas(imageDimensions.x, imageDimensions.y);
     p5CanvasEl.style.width = imageDimensions.x;
     p5CanvasEl.style.height = '';
     p5CanvasEl.style["max-width"] = "90%";
     p5CanvasEl.style["aspect-ratio"] = imageDimensions.x / imageDimensions.y;
+
+    size.x = Math.floor(imageDimensions.x / 2);
+    size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
+
+    bufferForZooming.resizeCanvas(imageDimensions.x, imageDimensions.y);
 
     drawCursor();
 }
@@ -403,6 +410,7 @@ function zoomCanvas(position, size, frame, frames) {
 
             drawClock('#BBBBBB');
         }
+        console.log(destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)
     }
 
     if ((frame - 1) % 75 == 0) {
