@@ -59,7 +59,7 @@ function setup() {
     formContainer.appendChild(fullscreenButton);
 
     let promptAndSteps = document.createElement("div");
-    promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center");
     formContainer.appendChild(promptAndSteps)
     // Text input box for a prompt
     let promptLabel = document.createElement("label");
@@ -70,7 +70,7 @@ function setup() {
     promptInput.setAttribute("type", "text");
     promptInput.setAttribute("value", "New York streetscape");
     promptInput.setAttribute("id", "promptInput");
-    promptInput.setAttribute("style", "margin: 0 auto;");
+    promptInput.setAttribute("style", "margin: 0 auto; flex-basis: 70%");
     promptAndSteps.appendChild(promptInput);
 
     // Input box for number of steps
@@ -112,9 +112,10 @@ function setup() {
     formContainer.appendChild(widthAndHeight)
 
     let rollPrompt = document.createElement("button");
+    rollPrompt.innerHTML = '<img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/casino/default/24px.svg"></img>'
     rollPrompt.setAttribute("id", "rollPrompt");
-    rollPrompt.setAttribute("type", "button");
-    rollPrompt.innerHTML = "Get new prompt idea"
+    rollPrompt.setAttribute("style", "min-width: 50px");
+    // rollPrompt.innerHTML = "Get new prompt idea"
     rollPrompt.addEventListener("click", (e) => {
         fetch("/api/prompt", {
             method: "POST",
