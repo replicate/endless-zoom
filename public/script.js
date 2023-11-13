@@ -104,12 +104,8 @@ function setup() {
     strength.setAttribute("style", "margin: 0 auto;");
     promptAndSteps.appendChild(strength);
 
-    let widthAndHeightMessage = document.createElement("p")
-    widthAndHeightMessage.innerHTML = "N.B. changing width or height will lose your history"
-    formContainer.appendChild(widthAndHeightMessage)
-
     let widthAndHeight = document.createElement("div");
-    widthAndHeight.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    widthAndHeight.setAttribute("style", "width: 50%; display: none; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
     formContainer.appendChild(widthAndHeight)
 
     // Input box for width
