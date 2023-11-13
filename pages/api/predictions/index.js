@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     );
   }
 
-  let prediction = await replicate.predictions.create(
+  let prediction = await replicate.deployments.predictions.create(
     "replicate",
     "endless-zoom",
     {
@@ -29,6 +29,5 @@ export default async function handler(req, res) {
   }
 
   res.statusCode = 201;
-  console.log(prediction[0])
-  res.end(JSON.stringify({ output: prediction }));
+  res.end(JSON.stringify({ output: prediction.output }));
 }
