@@ -35,7 +35,7 @@ function setup() {
 
     let container = document.createElement("div");
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
-    container.setAttribute("style", "width: 100%; text-align: center; padding: 1rem; margin: auto auto;");
+    container.setAttribute("style", "width: 100%; text-align: center; margin: 3rem auto;");
     container.setAttribute("id", "container");
 
     let contentDiv = document.querySelector("#content")
@@ -78,7 +78,7 @@ function setup() {
     let stepsLabel = document.createElement("label");
     stepsLabel.setAttribute("for", "steps");
     stepsLabel.innerText = "Steps:";
-    promptAndSteps.setAttribute("style", "display: none")
+    stepsLabel.setAttribute("style", "display: none");
     promptAndSteps.appendChild(stepsLabel);
 
     let steps = document.createElement("input");
