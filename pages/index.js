@@ -26,7 +26,7 @@ export default function Home() {
       </div>
       <div id="content"></div>
       <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" />
-      <Script src="./script.js" />
+      <Script src="./script.js" strategy="beforeInteractive" />
 
       <Footer />
       <Analytics />
