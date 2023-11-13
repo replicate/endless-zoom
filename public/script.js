@@ -15,6 +15,7 @@ let p5CanvasEl;
 let imageDimensions = { x: 512, y: 512 };
 let size = { x: 256 };
 size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
+let soundEffects = [];
 
 // The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
@@ -347,54 +348,74 @@ function mouseReleased() {
 }
 
 function zoomCanvas(position, size, frame, frames) {
-    if (!waiting) { return }
-
-    let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: imageDimensions.x, y: 0 }, { x: 0, y: imageDimensions.y }, { x: imageDimensions.x, y: imageDimensions.y }]
-
-    let [destinationTopLeft, destinationTopRight, destinationBottomLeft, destinationBottomRight] = [
-        { x: position.x - size.x / 2, y: position.y - size.y / 2 },
-        { x: position.x + size.x / 2, y: position.y - size.y / 2 },
-        { x: position.x - size.x / 2, y: position.y + size.y / 2 },
-        { x: position.x + size.x / 2, y: position.y + size.y / 2 }
-    ]
-
-    let [topLeft, topRight, bottomLeft, bottomRight] = [
-        { x: originalTopLeft.x * (1 - (frame / frames)) + destinationTopLeft.x * (frame / frames), y: originalTopLeft.y * (1 - (frame / frames)) + destinationTopLeft.y * (frame / frames) },
-        { x: originalTopRight.x * (1 - (frame / frames)) + destinationTopRight.x * (frame / frames), y: originalTopRight.y * (1 - (frame / frames)) + destinationTopRight.y * (frame / frames) },
-        { x: originalBottomLeft.x * (1 - (frame / frames)) + destinationBottomLeft.x * (frame / frames), y: originalBottomLeft.y * (1 - (frame / frames)) + destinationBottomLeft.y * (frame / frames) },
-        { x: originalBottomRight.x * (1 - (frame / frames)) + destinationBottomRight.x * (frame / frames), y: originalBottomRight.y * (1 - (frame / frames)) + destinationBottomRight.y * (frame / frames) }
-    ]
-
-
-    let srcX = topLeft.x;
-    let srcY = topLeft.y;
-    let srcWidth = (topRight.x - topLeft.x);
-    let srcHeight = (bottomLeft.y - topLeft.y);
-
-    // Define the destination region on the canvas
-    let destX = 0;
-    let destY = 0;
-    let destWidth = p5Canvas.width;
-    let destHeight = p5Canvas.height;
-
-    if (frame === 1) {
-        loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
-            // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
-            loaded_img.resize(imageDimensions.x, imageDimensions.y);
-            bufferForZooming.clear();
-            bufferForZooming.copy(loaded_img, 0, 0, imageDimensions.x, imageDimensions.y, 0, 0, imageDimensions.x, imageDimensions.y);
-            image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
-        });
-    } else {
-        image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
-
-        drawClock('#BBBBBB');
+    if (!waiting) {
+        soundEffects.forEach((audio) => {
+            audio.pause();
+            delete audio;
+        })
+        let audio = new Audio('./pop.mp3');
+        audio.playbackRate = 0.5 + Math.random();
+        audio.play()
+        audio.playbackRate = 0.5 + Math.random();
+        setTimeout(() => { audio.play() }, Math.random() * 50)
+        return
     }
 
     if (frame < frames) {
-        // 50 fps (roughly)
-        setTimeout(() => { window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames)) }, 1000 / 50);
+        let [originalTopLeft, originalTopRight, originalBottomLeft, originalBottomRight] = [{ x: 0, y: 0 }, { x: imageDimensions.x, y: 0 }, { x: 0, y: imageDimensions.y }, { x: imageDimensions.x, y: imageDimensions.y }]
+
+        let [destinationTopLeft, destinationTopRight, destinationBottomLeft, destinationBottomRight] = [
+            { x: position.x - size.x / 2, y: position.y - size.y / 2 },
+            { x: position.x + size.x / 2, y: position.y - size.y / 2 },
+            { x: position.x - size.x / 2, y: position.y + size.y / 2 },
+            { x: position.x + size.x / 2, y: position.y + size.y / 2 }
+        ]
+
+        let [topLeft, topRight, bottomLeft, bottomRight] = [
+            { x: originalTopLeft.x * (1 - (frame / frames)) + destinationTopLeft.x * (frame / frames), y: originalTopLeft.y * (1 - (frame / frames)) + destinationTopLeft.y * (frame / frames) },
+            { x: originalTopRight.x * (1 - (frame / frames)) + destinationTopRight.x * (frame / frames), y: originalTopRight.y * (1 - (frame / frames)) + destinationTopRight.y * (frame / frames) },
+            { x: originalBottomLeft.x * (1 - (frame / frames)) + destinationBottomLeft.x * (frame / frames), y: originalBottomLeft.y * (1 - (frame / frames)) + destinationBottomLeft.y * (frame / frames) },
+            { x: originalBottomRight.x * (1 - (frame / frames)) + destinationBottomRight.x * (frame / frames), y: originalBottomRight.y * (1 - (frame / frames)) + destinationBottomRight.y * (frame / frames) }
+        ]
+
+
+        let srcX = topLeft.x;
+        let srcY = topLeft.y;
+        let srcWidth = (topRight.x - topLeft.x);
+        let srcHeight = (bottomLeft.y - topLeft.y);
+
+        // Define the destination region on the canvas
+        let destX = 0;
+        let destY = 0;
+        let destWidth = p5Canvas.width;
+        let destHeight = p5Canvas.height;
+
+        if (frame === 1) {
+            loadImage(images[currentImage.frameNumber - 1], (loaded_img) => {
+                // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
+                loaded_img.resize(imageDimensions.x, imageDimensions.y);
+                bufferForZooming.clear();
+                bufferForZooming.copy(loaded_img, 0, 0, imageDimensions.x, imageDimensions.y, 0, 0, imageDimensions.x, imageDimensions.y);
+                image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+            });
+        } else {
+            image(bufferForZooming, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+
+            drawClock('#BBBBBB');
+        }
     }
+
+    if ((frame - 1) % 75 == 0) {
+        var audio = new Audio('./whoosh.mp3');
+        audio.playbackRate = 0.5 + Math.random();
+        soundEffects.push(audio);
+        audio.play();
+    }
+
+
+    // 50 fps (roughly)
+    setTimeout(() => { window.requestAnimationFrame(() => zoomCanvas(position, size, frame + 1, frames)) }, 1000 / 50);
+
 }
 
 function drawClock(color) {
