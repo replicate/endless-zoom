@@ -74,6 +74,7 @@ function setup() {
     promptAndSteps.appendChild(promptInput);
 
     // Input box for number of steps
+    // Currently hidden, but power users could reveal it if they want
     let stepsLabel = document.createElement("label");
     stepsLabel.setAttribute("for", "steps");
     stepsLabel.innerText = "Steps:";
@@ -111,6 +112,7 @@ function setup() {
     formContainer.appendChild(widthAndHeight)
 
     // Input box for width
+    // Currently hidden, but power users could reveal it if they want
     let widthLabel = document.createElement("label");
     widthLabel.setAttribute("for", "width");
     widthLabel.innerText = "Width:";
@@ -137,12 +139,14 @@ function setup() {
         images = [];
         currentImage = undefined;
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
     });
     // Ensure divisible by 8
     width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
     widthAndHeight.appendChild(width);
 
     // Input box for height
+    // Currently hidden, but power users could reveal it if they want
     let heightLabel = document.createElement("label");
     heightLabel.setAttribute("for", "height");
     heightLabel.innerText = "Height:";
@@ -169,6 +173,7 @@ function setup() {
         images = [];
         currentImage = undefined;
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
     });
     // Ensure divisible by 8
     width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
@@ -218,16 +223,21 @@ function setup() {
     });
     historyInnerContainer.appendChild(playButton);
 
+    let downloadContainer = document.createElement("div");
+    downloadContainer.setAttribute("id", "downloadContainer");
+    downloadContainer.setAttribute("style", "width: 50%; display: none; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    formContainer.appendChild(downloadContainer);
 
-
+    // Download individual images button hidden
     let downloadButton = document.createElement("button");
+    downloadButton.setAttribute("style", "display: none")
     downloadButton.innerHTML = "Download Images"
     downloadButton.addEventListener("click", () => {
         for (const [i, im_url] of images.entries()) {
             download(im_url, `image_${i.toString().padStart(3, '0')}.png`, true);
         }
     });
-    historyInnerContainer.appendChild(downloadButton);
+    downloadContainer.appendChild(downloadButton);
 
     let gifButton = document.createElement("button");
     gifButton.innerHTML = "Download .gif"
@@ -243,7 +253,7 @@ function setup() {
                 download(data, "endless_zoom.gif", false);
             });
     });
-    historyInnerContainer.appendChild(gifButton);
+    downloadContainer.appendChild(gifButton);
 
 
     let zipButton = document.createElement("button");
@@ -260,7 +270,7 @@ function setup() {
                 download(data, "endless_zoom.zip", true);
             });
     });
-    historyInnerContainer.appendChild(zipButton);
+    downloadContainer.appendChild(zipButton);
 
     let txt2imgButton = document.createElement("button");
     txt2imgButton.setAttribute("id", "txt2imgButton");
@@ -269,6 +279,7 @@ function setup() {
     txt2imgButton.addEventListener("click", (e) => {
         images = []
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
         dream(promptInput.value, undefined, parseInt(steps.value), strength);
         drawCursor();
         drawClock('#333333');
@@ -666,6 +677,7 @@ function dream(prompt, img, steps, strength, width, height) {
                     if (images.length > 1) {
                         let historyContainer = document.querySelector('#historyContainer');
                         historyContainer.style.display = "flex";
+                        downloadContainer.style.display = "flex";
                     }
 
                     waiting = false;
