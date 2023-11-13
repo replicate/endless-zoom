@@ -13,11 +13,15 @@ export default async function handler(req, res) {
     );
   }
 
+  let input = req.body.input;
+  // Ensure divisible by 8
+  input.width -= input.width % 8;
+  input.height -= input.height % 8;
   let prediction = await replicate.deployments.predictions.create(
     "replicate",
     "endless-zoom",
     {
-      input: req.body.input,
+      input: input,
     });
 
   prediction = await replicate.wait(prediction);
