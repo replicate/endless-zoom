@@ -388,7 +388,9 @@ function frameNumberToCanvas(frameNumber) {
 }
 
 function mouseReleased() {
-    if (!waiting) {
+
+    // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
+    if (!waiting && Boolean(document.querySelector('#promptInput'))) {
         // Check that mouse is in bounds of canvas
         if (mouseInCanvas()) {
             dreamFromCenterAndSize({ x: mouseX, y: mouseY }, size);
@@ -597,7 +599,8 @@ function touchEnded() {
     if (touches.length === 1) {
         justZoomed = true;
     }
-    if (!waiting & !playing) {
+    // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
+    if (!waiting & !playing & Boolean(document.querySelector('#promptInput'))) {
         dreamFromCenterAndSize(center, size);
         return false;
     }

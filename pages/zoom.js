@@ -1,12 +1,12 @@
 import Head from "next/head";
-import Link from "next/link";
+import Script from 'next/script'
 import { Analytics } from "@vercel/analytics/react";
 import Footer from "../components/footer";
 import { rootUrl } from "../utils/constants"
 
 export default function Home() {
   return (
-    <div className="max-w-[512px] mx-auto p-10 bg-white rounded-lg">
+    <>
       <Head>
         <title>Endless Zoom</title>
         <meta property="og:image" content={`${rootUrl}/og-image.png`} />
@@ -14,14 +14,11 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <div id="content"></div>
-      <Link legacyBehavior href="/zoom" >
-        <a className="py-3 block text-center bg-black text-white rounded-md mt-10">
-          Let me in!
-        </a>
-      </Link>
+      <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" />
+      <Script src="./script.js" strategy="beforeInteractive" />
 
       <Footer />
       <Analytics />
-    </div>
+    </>
   );
 }
