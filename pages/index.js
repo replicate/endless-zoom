@@ -16,7 +16,7 @@ export default function Home() {
       <div className="bg-slate-100 border-b-2 text-center p-3">
         Powered by Replicate.{" "}
         <a
-          href="https://replicate.com/fofr/latent-consistency-model"
+          href="https://replicate.com/fofr/latent-consistency-model?utm_source=project&utm_campaign=endless-zoom"
           target="_blank"
           rel="noreferrer"
           className="underline"
