@@ -43,7 +43,7 @@ function setup() {
     p5Canvas.parent("container");
     p5Canvas.id("p5Canvas");
     p5CanvasEl = document.querySelector('#p5Canvas');
-    p5CanvasEl.setAttribute("style", "margin: 0 auto; height: 400px; border: 2px solid black");
+    p5CanvasEl.setAttribute("style", "margin: 0 auto; border: 2px solid black");
 
     let formContainer = document.createElement("div");
     formContainer.setAttribute("id", "formContainer");
@@ -128,6 +128,10 @@ function setup() {
     width.addEventListener('input', (e) => {
         imageDimensions.x = parseInt(e.target.value);
         resizeCanvas(imageDimensions.x, p5Canvas.height);
+        p5CanvasEl.style.width = imageDimensions.x;
+        p5CanvasEl.style.height = '';
+        p5CanvasEl.style["max-width"] = "90%";
+        p5CanvasEl.style["aspect-ratio"] = imageDimensions.x / imageDimensions.y;
         bufferForZooming.resizeCanvas(imageDimensions.x, p5Canvas.height);
         size.x = Math.floor(imageDimensions.x / 2);
         size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
@@ -156,6 +160,10 @@ function setup() {
     height.addEventListener('input', (e) => {
         imageDimensions.y = parseInt(e.target.value);
         resizeCanvas(p5Canvas.width, imageDimensions.y);
+        p5CanvasEl.style.width = imageDimensions.x;
+        p5CanvasEl.style.height = '';
+        p5CanvasEl.style["max-width"] = "90%";
+        p5CanvasEl.style["aspect-ratio"] = imageDimensions.x / imageDimensions.y;
         bufferForZooming.resizeCanvas(p5Canvas.width, imageDimensions.y);
         size.x = Math.floor(imageDimensions.x / 2);
         size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
@@ -278,7 +286,14 @@ function setup() {
                 currentImage = img;
             });
     }, 10);
+
+    // Set canvas initial dimensions
     resizeCanvas(imageDimensions.x, imageDimensions.y);
+    p5CanvasEl.style.width = imageDimensions.x;
+    p5CanvasEl.style.height = '';
+    p5CanvasEl.style["max-width"] = "90%";
+    p5CanvasEl.style["aspect-ratio"] = imageDimensions.x / imageDimensions.y;
+
     drawCursor();
 }
 
