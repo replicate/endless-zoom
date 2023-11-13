@@ -13,11 +13,14 @@ export default async function handler(req, res) {
     );
   }
 
-  var prediction = await replicate.run(
-    "replicate/endless-zoom",
+  let prediction = await replicate.predictions.create(
+    "replicate",
+    "endless-zoom",
     {
       input: req.body.input,
     });
+
+  prediction = await replicate.wait(prediction);
 
   if (prediction?.error) {
     res.statusCode = 500;
