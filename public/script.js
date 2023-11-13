@@ -36,7 +36,9 @@ function setup() {
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
     container.setAttribute("style", "width: 100%; text-align: center; padding: 1rem; margin: auto auto;");
     container.setAttribute("id", "container");
-    document.body.appendChild(container);
+
+    let contentDiv = document.querySelector("#content")
+    contentDiv.appendChild(container);
 
     p5Canvas.parent("container");
     p5Canvas.id("p5Canvas");
@@ -248,7 +250,6 @@ function setup() {
             });
     });
     historyInnerContainer.appendChild(zipButton);
-
 
     let txt2imgButton = document.createElement("button");
     txt2imgButton.setAttribute("id", "txt2imgButton");
@@ -608,7 +609,7 @@ function dream(prompt, img, steps, strength, width, height) {
                     txt2imgButton.disabled = false;
                 });
             })
-            .catch((err) => { console.log(err); fetchImage() }); // If error, send again - probably cold boot of model
+            .catch((err) => { console.log(err); setTimeout(fetchImage(), 2000) }); // If error, send again - probably cold boot of model
     }
     fetchImage();
 
