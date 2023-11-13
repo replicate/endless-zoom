@@ -14,8 +14,7 @@ export default async function handler(req, res) {
   }
 
   var prediction = await replicate.run(
-    "replicate",
-    "endless-zoom",
+    "replicate/endless-zoom",
     {
       input: req.body.input,
     });
