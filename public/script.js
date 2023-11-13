@@ -82,7 +82,7 @@ function setup() {
 
     let steps = document.createElement("input");
     steps.setAttribute("type", "number");
-    steps.setAttribute("value", 2);
+    steps.setAttribute("value", 4);
     steps.setAttribute("min", 1);
     steps.setAttribute("max", 6);
     steps.setAttribute("id", "steps");
