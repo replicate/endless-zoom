@@ -135,6 +135,8 @@ function setup() {
         currentImage = undefined;
         historyContainer.style.display = "none";
     });
+    // Ensure divisible by 8
+    width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
     widthAndHeight.appendChild(width);
 
     // Input box for height
@@ -161,6 +163,8 @@ function setup() {
         currentImage = undefined;
         historyContainer.style.display = "none";
     });
+    // Ensure divisible by 8
+    width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
     widthAndHeight.appendChild(height);
 
     // Slider that scrubs through history
