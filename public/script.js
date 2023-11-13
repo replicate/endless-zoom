@@ -111,6 +111,26 @@ function setup() {
     widthAndHeight.setAttribute("style", "width: 50%; display: none; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
     formContainer.appendChild(widthAndHeight)
 
+    let rollPrompt = document.createElement("button");
+    rollPrompt.setAttribute("id", "rollPrompt");
+    rollPrompt.setAttribute("type", "button");
+    rollPrompt.innerHTML = "Get new prompt idea"
+    rollPrompt.addEventListener("click", (e) => {
+        fetch("/api/prompt", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
+        }).then((r) => r.json())
+            .then((data) => {
+                promptInput.value = data;
+                console.log(data)
+            });
+    });
+    promptAndSteps.appendChild(rollPrompt);
+
+
     // Input box for width
     // Currently hidden, but power users could reveal it if they want
     let widthLabel = document.createElement("label");
