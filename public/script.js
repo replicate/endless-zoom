@@ -477,6 +477,10 @@ function dreamFromCenterAndSize(position, size) {
             // Ensure input image is the right size so we don't get weird artifacts while copying to buffer
             loaded_img.resize(imageDimensions.x, imageDimensions.y);
 
+            // Prime initImageBuffer with a non-zoomed version so we never get black edges
+            // (hacky, but papers over the edges until outpainting implemented)
+            initImageBuffer.copy(loaded_img, destX, destY, destWidth, destHeight, destX, destY, destWidth, destHeight);
+
             initImageBuffer.copy(loaded_img, srcX, srcY, size.x, size.y, destX, destY, destWidth, destHeight);
 
             // Get the data URI from the resized offscreen canvas
