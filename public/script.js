@@ -77,6 +77,7 @@ function setup() {
     let stepsLabel = document.createElement("label");
     stepsLabel.setAttribute("for", "steps");
     stepsLabel.innerText = "Steps:";
+    promptAndSteps.setAttribute("style", "display: none")
     promptAndSteps.appendChild(stepsLabel);
 
     let steps = document.createElement("input");
@@ -85,13 +86,14 @@ function setup() {
     steps.setAttribute("min", 1);
     steps.setAttribute("max", 6);
     steps.setAttribute("id", "steps");
-    steps.setAttribute("style", "margin: 0 auto;");
+    steps.setAttribute("style", "margin: 0 auto; display: none");
     promptAndSteps.appendChild(steps);
 
     // Input box for prompt strength
     let strengthLabel = document.createElement("label");
     strengthLabel.setAttribute("for", "strength");
     strengthLabel.innerText = "Prompt Strength:";
+    strengthLabel.setAttribute("style", "display: none");
     promptAndSteps.appendChild(strengthLabel);
 
     let strength = document.createElement("input");
@@ -101,7 +103,7 @@ function setup() {
     strength.setAttribute("step", 0.05);
     strength.setAttribute("max", 1.00);
     strength.setAttribute("id", "strength");
-    strength.setAttribute("style", "margin: 0 auto;");
+    strength.setAttribute("style", "margin: 0 auto; display: none");
     promptAndSteps.appendChild(strength);
 
     let widthAndHeight = document.createElement("div");
