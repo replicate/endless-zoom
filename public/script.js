@@ -289,8 +289,20 @@ function setup() {
     }, 10);
 
     // Set canvas initial dimensions
-    width.value = (height.value * window.devicePixelRatio).toFixed(0).toString();
-    imageDimensions.x = parseInt(width.value);
+    let deviceAspectRatio = window.screen.width / window.screen.height;
+    let width_value_tmp = height.value * deviceAspectRatio;
+    width_value_tmp -= width_value_tmp % 8;
+    if (width_value_tmp <= 1024) {
+
+        width.value = (width_value_tmp).toFixed(0).toString();
+        imageDimensions.x = parseInt(width.value);
+
+    } else {
+        let height_value_tmp = (width.value / deviceAspectRatio).toFixed(0);
+        height_value_tmp -= height_value_tmp % 8;
+        height.value = (height_value_tmp).toFixed(0).toString();
+        imageDimensions.y = parseInt(height.value);
+    }
     resizeCanvas(imageDimensions.x, imageDimensions.y);
     p5CanvasEl.style.width = imageDimensions.x;
     p5CanvasEl.style.height = '';
