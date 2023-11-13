@@ -8,6 +8,9 @@ export default function Home() {
     <>
       <Head>
         <title>Endless Zoom</title>
+        <meta property="og:image" content="./og-image.png" />
+        <meta property="twitter:image" content="./og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <div className="bg-slate-100 border-b-2 text-center p-3">
         Powered by Replicate.{" "}
