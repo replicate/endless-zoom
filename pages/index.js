@@ -1,35 +1,37 @@
 import Head from "next/head";
-import Script from 'next/script'
+import Link from "next/link";
 import { Analytics } from "@vercel/analytics/react";
 import Footer from "../components/footer";
 import { rootUrl } from "../utils/constants"
 
 export default function Home() {
   return (
-    <>
+    <div className="max-w-[512px] mx-auto p-10 bg-white rounded-lg">
       <Head>
         <title>Endless Zoom</title>
         <meta property="og:image" content={`${rootUrl}/og-image.png`} />
         <meta property="twitter:image" content={`${rootUrl}/og-image.png`} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
-      <div className="bg-slate-100 border-b-2 text-center p-3">
-        Powered by Replicate.{" "}
-        <a
-          href="https://replicate.com/fofr/latent-consistency-model?utm_source=project&utm_campaign=endless-zoom"
-          target="_blank"
-          rel="noreferrer"
-          className="underline"
-        >
-          Run this model in the cloud
-        </a>
-      </div>
       <div id="content"></div>
-      <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" />
-      <Script src="./script.js" strategy="beforeInteractive" />
+      <Link href="/zoom">
+        <video autoPlay loop muted playsInline className="w-full cursor-pointer">
+          <source src="/endlesszoom.mp4" />
+        </video>
+      </Link>
+      <Link href="/zoom">
+        <video autoPlay loop muted playsInline className="w-full cursor-pointer">
+          <source src="/endlesszoomphone.mp4" />
+        </video>
+      </Link>
+      <Link legacyBehavior href="/zoom" >
+        <a className="py-3 block text-center bg-black text-white rounded-md mt-10">
+          Let me in!
+        </a>
+      </Link>
 
       <Footer />
       <Analytics />
-    </>
+    </div>
   );
 }

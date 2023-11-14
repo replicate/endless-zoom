@@ -35,7 +35,7 @@ function setup() {
 
     let container = document.createElement("div");
     container.innerHTML = "<h1 style=\"font-size: 300%;\">Endless Zoom</h1><h2 style=\"font-size: 120%;\">Scroll to change cursor size; click to zoom in</h2>"
-    container.setAttribute("style", "width: 100%; text-align: center; padding: 1rem; margin: auto auto;");
+    container.setAttribute("style", "width: 100%; text-align: center; margin: 3rem auto;");
     container.setAttribute("id", "container");
 
     let contentDiv = document.querySelector("#content")
@@ -59,7 +59,7 @@ function setup() {
     formContainer.appendChild(fullscreenButton);
 
     let promptAndSteps = document.createElement("div");
-    promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    promptAndSteps.setAttribute("style", "width: 50%; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center");
     formContainer.appendChild(promptAndSteps)
     // Text input box for a prompt
     let promptLabel = document.createElement("label");
@@ -70,28 +70,31 @@ function setup() {
     promptInput.setAttribute("type", "text");
     promptInput.setAttribute("value", "New York streetscape");
     promptInput.setAttribute("id", "promptInput");
-    promptInput.setAttribute("style", "margin: 0 auto;");
+    promptInput.setAttribute("style", "margin: 0 auto; flex-basis: 70%");
     promptAndSteps.appendChild(promptInput);
 
     // Input box for number of steps
+    // Currently hidden, but power users could reveal it if they want
     let stepsLabel = document.createElement("label");
     stepsLabel.setAttribute("for", "steps");
     stepsLabel.innerText = "Steps:";
+    stepsLabel.setAttribute("style", "display: none");
     promptAndSteps.appendChild(stepsLabel);
 
     let steps = document.createElement("input");
     steps.setAttribute("type", "number");
-    steps.setAttribute("value", 2);
+    steps.setAttribute("value", 4);
     steps.setAttribute("min", 1);
     steps.setAttribute("max", 6);
     steps.setAttribute("id", "steps");
-    steps.setAttribute("style", "margin: 0 auto;");
+    steps.setAttribute("style", "margin: 0 auto; display: none");
     promptAndSteps.appendChild(steps);
 
     // Input box for prompt strength
     let strengthLabel = document.createElement("label");
     strengthLabel.setAttribute("for", "strength");
     strengthLabel.innerText = "Prompt Strength:";
+    strengthLabel.setAttribute("style", "display: none");
     promptAndSteps.appendChild(strengthLabel);
 
     let strength = document.createElement("input");
@@ -101,18 +104,35 @@ function setup() {
     strength.setAttribute("step", 0.05);
     strength.setAttribute("max", 1.00);
     strength.setAttribute("id", "strength");
-    strength.setAttribute("style", "margin: 0 auto;");
+    strength.setAttribute("style", "margin: 0 auto; display: none");
     promptAndSteps.appendChild(strength);
 
-    let widthAndHeightMessage = document.createElement("p")
-    widthAndHeightMessage.innerHTML = "N.B. changing width or height will lose your history"
-    formContainer.appendChild(widthAndHeightMessage)
-
     let widthAndHeight = document.createElement("div");
-    widthAndHeight.setAttribute("style", "width: 50%; display: flex; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    widthAndHeight.setAttribute("style", "width: 50%; display: none; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
     formContainer.appendChild(widthAndHeight)
 
+    let rollPrompt = document.createElement("button");
+    rollPrompt.innerHTML = '<img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/casino/default/24px.svg"></img>'
+    rollPrompt.setAttribute("id", "rollPrompt");
+    rollPrompt.setAttribute("style", "min-width: 50px");
+    // rollPrompt.innerHTML = "Get new prompt idea"
+    rollPrompt.addEventListener("click", (e) => {
+        fetch("/api/prompt", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
+        }).then((r) => r.json())
+            .then((data) => {
+                promptInput.value = data;
+            });
+    });
+    promptAndSteps.appendChild(rollPrompt);
+
+
     // Input box for width
+    // Currently hidden, but power users could reveal it if they want
     let widthLabel = document.createElement("label");
     widthLabel.setAttribute("for", "width");
     widthLabel.innerText = "Width:";
@@ -139,12 +159,14 @@ function setup() {
         images = [];
         currentImage = undefined;
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
     });
     // Ensure divisible by 8
     width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
     widthAndHeight.appendChild(width);
 
     // Input box for height
+    // Currently hidden, but power users could reveal it if they want
     let heightLabel = document.createElement("label");
     heightLabel.setAttribute("for", "height");
     heightLabel.innerText = "Height:";
@@ -171,6 +193,7 @@ function setup() {
         images = [];
         currentImage = undefined;
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
     });
     // Ensure divisible by 8
     width.addEventListener('change', (e) => { e.target.value = e.target.value - e.target.value % 8 });
@@ -220,16 +243,21 @@ function setup() {
     });
     historyInnerContainer.appendChild(playButton);
 
+    let downloadContainer = document.createElement("div");
+    downloadContainer.setAttribute("id", "downloadContainer");
+    downloadContainer.setAttribute("style", "width: 50%; display: none; flex-direction: row; gap: 0.5rem; align-items: center; align-content: center; justify-content: center");
+    formContainer.appendChild(downloadContainer);
 
-
+    // Download individual images button hidden
     let downloadButton = document.createElement("button");
+    downloadButton.setAttribute("style", "display: none")
     downloadButton.innerHTML = "Download Images"
     downloadButton.addEventListener("click", () => {
         for (const [i, im_url] of images.entries()) {
             download(im_url, `image_${i.toString().padStart(3, '0')}.png`, true);
         }
     });
-    historyInnerContainer.appendChild(downloadButton);
+    downloadContainer.appendChild(downloadButton);
 
     let gifButton = document.createElement("button");
     gifButton.innerHTML = "Download .gif"
@@ -245,7 +273,7 @@ function setup() {
                 download(data, "endless_zoom.gif", false);
             });
     });
-    historyInnerContainer.appendChild(gifButton);
+    downloadContainer.appendChild(gifButton);
 
 
     let zipButton = document.createElement("button");
@@ -262,7 +290,7 @@ function setup() {
                 download(data, "endless_zoom.zip", true);
             });
     });
-    historyInnerContainer.appendChild(zipButton);
+    downloadContainer.appendChild(zipButton);
 
     let txt2imgButton = document.createElement("button");
     txt2imgButton.setAttribute("id", "txt2imgButton");
@@ -271,6 +299,7 @@ function setup() {
     txt2imgButton.addEventListener("click", (e) => {
         images = []
         historyContainer.style.display = "none";
+        downloadContainer.style.display = "none";
         dream(promptInput.value, undefined, parseInt(steps.value), strength);
         drawCursor();
         drawClock('#333333');
@@ -359,7 +388,9 @@ function frameNumberToCanvas(frameNumber) {
 }
 
 function mouseReleased() {
-    if (!waiting) {
+
+    // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
+    if (!waiting && Boolean(document.querySelector('#promptInput'))) {
         // Check that mouse is in bounds of canvas
         if (mouseInCanvas()) {
             dreamFromCenterAndSize({ x: mouseX, y: mouseY }, size);
@@ -423,7 +454,6 @@ function zoomCanvas(position, size, frame, frames) {
 
             drawClock('#BBBBBB');
         }
-        console.log(destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight)
     }
 
     if ((frame - 1) % 75 == 0) {
@@ -569,7 +599,8 @@ function touchEnded() {
     if (touches.length === 1) {
         justZoomed = true;
     }
-    if (!waiting & !playing) {
+    // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
+    if (!waiting & !playing & Boolean(document.querySelector('#promptInput'))) {
         dreamFromCenterAndSize(center, size);
         return false;
     }
@@ -668,6 +699,7 @@ function dream(prompt, img, steps, strength, width, height) {
                     if (images.length > 1) {
                         let historyContainer = document.querySelector('#historyContainer');
                         historyContainer.style.display = "flex";
+                        downloadContainer.style.display = "flex";
                     }
 
                     waiting = false;
