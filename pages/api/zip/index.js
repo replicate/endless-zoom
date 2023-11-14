@@ -35,6 +35,11 @@ async function convertB64ToZip(array_of_b64_images) {
   return JSON.stringify("data:application/zip;base64," + zipData);
 }
 
+// This function can run for a maximum of 5 minutes
+export const config = {
+  maxDuration: 5 * 60,
+};
+
 export default async function handler(req, res) {
   try {
     let gif = await convertB64ToZip(req.body.images);
