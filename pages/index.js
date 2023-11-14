@@ -14,21 +14,19 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <div id="content"></div>
-      <Link href="/zoom">
+      <a href="/zoom">
         <video autoPlay loop muted playsInline className="w-full cursor-pointer">
           <source src="/endlesszoom.mp4" />
         </video>
-      </Link>
-      <Link href="/zoom">
+      </a>
+      <a href="/zoom">
         <video autoPlay loop muted playsInline className="w-full cursor-pointer">
           <source src="/endlesszoomphone.mp4" />
         </video>
-      </Link>
-      <Link legacyBehavior href="/zoom" >
-        <a className="py-3 block text-center bg-black text-white rounded-md mt-10">
-          Let me in!
-        </a>
-      </Link>
+      </a>
+      <a href="/zoom" className="py-3 block text-center bg-black text-white rounded-md mt-10">
+        Let me in!
+      </a>
 
       <Footer />
       <Analytics />

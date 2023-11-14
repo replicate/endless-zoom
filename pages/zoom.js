@@ -14,7 +14,7 @@ export default function Home() {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <div id="content"></div>
-      <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" strategy="beforeInteractive" />
+      <Script src="https://cdn.jsdelivr.net/npm/p5@1.8.0/lib/p5.js" />
       <Script src="./script.js" strategy="beforeInteractive" />
 
       <Footer />
