@@ -678,11 +678,11 @@ function s(p) {
             justZoomed = false;
             return false;
         }
-        if (touches.length === 0 & touchUserIsScrolling) {
+        if (p.touches.length === 0 & touchUserIsScrolling) {
             touchUserIsScrolling = false;
             return true;
         }
-        if (touches.length === 1) {
+        if (p.touches.length === 1) {
             justZoomed = true;
         }
         // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
