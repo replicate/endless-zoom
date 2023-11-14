@@ -6,7 +6,7 @@ import { rootUrl } from "../utils/constants"
 
 export default function Home() {
   return (
-    <div className="max-w-[768px] mx-auto p-10 bg-white rounded-lg">
+    <div className="max-w-[512px] mx-auto p-10 bg-white rounded-lg">
       <Head>
         <title>Endless Zoom</title>
         <meta property="og:image" content={`${rootUrl}/og-image.png`} />
@@ -17,6 +17,11 @@ export default function Home() {
       <Link href="/zoom">
         <video autoPlay loop muted playsInline className="w-full cursor-pointer">
           <source src="/endlesszoom.mp4" />
+        </video>
+      </Link>
+      <Link href="/zoom">
+        <video autoPlay loop muted playsInline className="w-full cursor-pointer">
+          <source src="/endlesszoomphone.mp4" />
         </video>
       </Link>
       <Link legacyBehavior href="/zoom" >
