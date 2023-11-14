@@ -56,6 +56,10 @@ async function toDataURL(url) {
 // let touchStarted = () => { };
 // let mouseWheel = () => { };
 
+// Don't play audio if browser doesn't allow
+const safePlay = (audio) => { try { audio.play(); } catch { } }
+const safePause = (audio) => { try { audio.pause(); } catch { } }
+
 function s(p) {
     p.setup = function () {
         p5Canvas = p.createCanvas(imageDimensions.x, imageDimensions.y);
@@ -420,14 +424,14 @@ function s(p) {
     function zoomCanvas(position, size, frame, frames) {
         if (!waiting) {
             soundEffects.forEach((audio) => {
-                audio.pause();
+                safePause(audio);
                 delete audio;
             })
             let audio = new Audio('./pop.mp3');
             audio.playbackRate = 0.5 + Math.random();
-            audio.play()
+            safePlay(audio)
             audio.playbackRate = 0.5 + Math.random();
-            setTimeout(() => { audio.play() }, Math.random() * 50)
+            setTimeout(() => { safePlay(audio) }, Math.random() * 50)
             return
         }
 
@@ -479,7 +483,7 @@ function s(p) {
             var audio = new Audio('./whoosh.mp3');
             audio.playbackRate = 0.5 + Math.random();
             soundEffects.push(audio);
-            audio.play();
+            safePlay(audio);
         }
 
 
@@ -678,11 +682,11 @@ function s(p) {
             justZoomed = false;
             return false;
         }
-        if (touches.length === 0 & touchUserIsScrolling) {
+        if (p.touches.length === 0 & touchUserIsScrolling) {
             touchUserIsScrolling = false;
             return true;
         }
-        if (touches.length === 1) {
+        if (p.touches.length === 1) {
             justZoomed = true;
         }
         // Check that promptInput DOM element has loaded to avoid error just after leaving splashscreen
