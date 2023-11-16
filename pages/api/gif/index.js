@@ -1,39 +1,34 @@
-import GIFEncoder from "gif-encoder-2";
-const { createCanvas, loadImage } = require("@napi-rs/canvas");
+import Replicate from "replicate";
 
-async function convertB64ToAnimatedGif(array_of_b64_images, width, height) {
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext("2d");
-    const encoder = new GIFEncoder(width, height);
-    encoder.setDelay(500);
-    encoder.start();
+const replicate = new Replicate({
+    auth: process.env.REPLICATE_API_TOKEN,
+});
 
-    const loadImages = array_of_b64_images.map((data_uri) => loadImage(data_uri));
-    const images = await Promise.all(loadImages);
-
-    for (const image of images) {
-        ctx.drawImage(image, 0, 0);
-        encoder.addFrame(ctx);
-    }
-
-    encoder.finish();
-    return JSON.stringify(
-        "data:image/gif;base64," + encoder.out.getData().toString("base64")
-    );
-}
-
-// This function can run for a maximum of 5 minutes
-export const config = {
-    maxDuration: 5 * 60,
-};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default async function handler(req, res) {
-    let gif = await convertB64ToAnimatedGif(
-        req.body.images,
-        req.body.width,
-        req.body.height
-    );
+    if (!process.env.REPLICATE_API_TOKEN) {
+        throw new Error(
+            "The REPLICATE_API_TOKEN environment variable is not set. See README.md for instructions on how to set it."
+        );
+    }
+
+    // Use deployment on endless-zoom.vercel.app, otherwise use public model
+    let prediction;
+    // console.log(req.body.images);
+    prediction = await replicate.run(
+        'chigozienri/image-urls-to-video:f3afb57de840ebb8dfc623726608d5b00e6c4ef17564283fb3945631446ede76',
+        {
+            input: { image_urls: req.body.images.toString(), output_zip: true },
+        });
+
+
+    if (prediction?.error) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ detail: prediction.error }));
+        return;
+    }
 
     res.statusCode = 201;
-    res.end(gif);
+    res.end(JSON.stringify({ output: prediction }));
 }

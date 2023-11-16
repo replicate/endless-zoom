@@ -17,6 +17,10 @@ let size = { x: 256 };
 size.y = Math.floor(size.x * imageDimensions.y / imageDimensions.x);
 let soundEffects = [];
 
+// Store links to generated gif and zip
+let gif;
+let zip;
+
 // The following global variables are only used in a touchscreen environment
 // If using two fingers to pinch to zoom, set this to true when the first finger releases and false when the second finger releases,
 // so that we only generate the first time
@@ -293,27 +297,11 @@ function s(p) {
         });
         downloadContainer.appendChild(downloadButton);
 
-        let gifButton = document.createElement("button");
-        gifButton.innerHTML = "Download .gif"
-        gifButton.addEventListener("click", () => {
+        let generateDownloadButton = document.createElement("button");
+        generateDownloadButton.innerHTML = "Generate .gif and .zip"
+        generateDownloadButton.addEventListener("click", () => {
+            generateDownloadButton.innerHTML = "Generating..."
             fetch("/api/gif", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
-            }).then((r) => r.json())
-                .then((data) => {
-                    download(data, "endless_zoom.gif", false);
-                });
-        });
-        downloadContainer.appendChild(gifButton);
-
-
-        let zipButton = document.createElement("button");
-        zipButton.innerHTML = "Download .zip"
-        zipButton.addEventListener("click", () => {
-            fetch("/api/zip", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -321,8 +309,40 @@ function s(p) {
                 body: JSON.stringify({ images })
             }).then((r) => r.json())
                 .then((data) => {
-                    download(data, "endless_zoom.zip", true);
+                    gif = data.output.video
+                    zip = data.output.zip
+                    gifButton.setAttribute("style", "display: flex; background: #fab1fc");
+                    zipButton.setAttribute("style", "display: flex; background: #fab1fc");
+                    generateDownloadButton.innerHTML = "Generate .gif and .zip"
                 });
+        });
+        downloadContainer.appendChild(generateDownloadButton);
+
+
+        let gifButton = document.createElement("button");
+        gifButton.setAttribute("style", "display: none");
+        gifButton.setAttribute("id", "gifButton");
+        gifButton.innerHTML = "Download .gif"
+        gifButton.addEventListener("click", () => {
+            if (typeof (gif) != "undefined") {
+                download(gif, "endless_zoom.gif", true);
+            } else {
+                alert("I don't know how you got in this situation, but you're trying to download a gif that doesn't exist yet!")
+            }
+        });
+        downloadContainer.appendChild(gifButton);
+
+
+        let zipButton = document.createElement("button");
+        zipButton.setAttribute("style", "display: none");
+        zipButton.setAttribute("id", "zipButton");
+        zipButton.innerHTML = "Download .zip"
+        zipButton.addEventListener("click", () => {
+            if (typeof (zip) != "undefined") {
+                download(zip, "endless_zoom.zip", true);
+            } else {
+                alert("I don't know how you got in this situation, but you're trying to download a zip that doesn't exist yet!")
+            }
         });
         downloadContainer.appendChild(zipButton);
 
@@ -513,6 +533,8 @@ function s(p) {
             alert('Pause playback before zooming');
             return;
         }
+        document.querySelector("#zipButton").setAttribute("style", "display: none");
+        document.querySelector("#gifButton").setAttribute("style", "display: none");
         if (images.length > 0) {
             let initImageBuffer = p.createGraphics(imageDimensions.x, imageDimensions.y);
 
