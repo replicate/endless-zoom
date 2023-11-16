@@ -1,3 +1,10 @@
+# Endless Zoom
+
+The example in public/scripts.js is used to run https://endless-zoom.vercel.app/, a small web toy that allows you to keep zooming in to a generated image and get more and more detail.
+
+
+This repo is an example of:
+
 ## p5.js + Latent Consistency Model
 
 This allows p5.js to interact with a Latent Consistency Model, and to easily swap between the backend being a local copy as described in https://replicate.com/blog/run-latent-consistency-model-on-mac, or a model hosted on replicate
