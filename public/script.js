@@ -49,17 +49,6 @@ async function toDataURL(url) {
     return URL.createObjectURL(blob);
 }
 
-
-// p5 js functions - wait until DOM properly loaded to avoid race conditions
-
-// let setup = () => { };
-// let draw = () => { };
-// let mouseInCanvas = () => { };
-// let mouseMoved = () => { };
-// let touchEnded = () => { };
-// let touchStarted = () => { };
-// let mouseWheel = () => { };
-
 // Don't play audio if browser doesn't allow
 const safePlay = (audio) => { try { audio.play(); } catch { } }
 const safePause = (audio) => { try { audio.pause(); } catch { } }
@@ -153,7 +142,6 @@ function s(p) {
         rollPrompt.innerHTML = '<img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/casino/default/24px.svg"></img>'
         rollPrompt.setAttribute("id", "rollPrompt");
         rollPrompt.setAttribute("style", "min-width: 50px");
-        // rollPrompt.innerHTML = "Get new prompt idea"
         rollPrompt.addEventListener("click", (e) => {
             fetch("/api/prompt", {
                 method: "POST",
