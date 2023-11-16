@@ -49,17 +49,6 @@ async function toDataURL(url) {
     return URL.createObjectURL(blob);
 }
 
-
-// p5 js functions - wait until DOM properly loaded to avoid race conditions
-
-// let setup = () => { };
-// let draw = () => { };
-// let mouseInCanvas = () => { };
-// let mouseMoved = () => { };
-// let touchEnded = () => { };
-// let touchStarted = () => { };
-// let mouseWheel = () => { };
-
 // Don't play audio if browser doesn't allow
 const safePlay = (audio) => { try { audio.play(); } catch { } }
 const safePause = (audio) => { try { audio.pause(); } catch { } }
@@ -106,7 +95,6 @@ function s(p) {
         promptAndSteps.appendChild(promptLabel);
         let promptInput = document.createElement("input");
         promptInput.setAttribute("type", "text");
-        promptInput.setAttribute("value", "New York streetscape");
         promptInput.setAttribute("id", "promptInput");
         promptInput.setAttribute("style", "margin: 0 auto; flex-basis: 70%");
         promptAndSteps.appendChild(promptInput);
@@ -153,19 +141,7 @@ function s(p) {
         rollPrompt.innerHTML = '<img src="https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/casino/default/24px.svg"></img>'
         rollPrompt.setAttribute("id", "rollPrompt");
         rollPrompt.setAttribute("style", "min-width: 50px");
-        // rollPrompt.innerHTML = "Get new prompt idea"
-        rollPrompt.addEventListener("click", (e) => {
-            fetch("/api/prompt", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
-            }).then((r) => r.json())
-                .then((data) => {
-                    promptInput.value = data;
-                });
-        });
+        rollPrompt.addEventListener("click", getRandomPrompt);
         promptAndSteps.appendChild(rollPrompt);
 
 
@@ -360,16 +336,10 @@ function s(p) {
         });
         formContainer.appendChild(txt2imgButton);
 
-        setTimeout(() => {
-            data_uri = 'https://replicate.delivery/pbxt/4L6vyIjY6Q64OZlWQTJogKIwvDF1NVvHNKIdleNyG35nbD6IA/out-0.png'
-            p.loadImage(data_uri,
-                (img) => {
-                    p.image(img, 0, 0, p5Canvas.width, p5Canvas.height);
-                    images.push(data_uri);
-                    img["frameNumber"] = 1;
-                    currentImage = img;
-                });
-        }, 10);
+        // Wait until prompt is randomly initialised, then get first image
+        getRandomPrompt();
+        const getFirstImage = () => { if (promptInput.value != "") { txt2imgButton.click() } else setTimeout(getFirstImage, 1) };
+        getFirstImage();
 
         // Set canvas initial dimensions to device aspect ratio (always landscape)
         // Initial loaded (non-generated) image will be slightly wonky, but not enough to matter
@@ -399,6 +369,19 @@ function s(p) {
         bufferForZooming.resizeCanvas(imageDimensions.x, imageDimensions.y);
 
         drawCursor();
+    }
+
+    function getRandomPrompt() {
+        fetch("/api/prompt", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ images: images, width: imageDimensions.x, height: imageDimensions.y })
+        }).then((r) => r.json())
+            .then((data) => {
+                promptInput.value = data;
+            });
     }
 
     function drawBox(centerX, centerY, sideX, sideY) {
