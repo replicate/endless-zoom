@@ -626,6 +626,8 @@ function s(p) {
                         }
 
                         waiting = false;
+                        // Now that the deployment has been turned off, turn off the warning message after you get the first response.
+                        document.querySelector('#warmupModal').style.display = 'none';
                         txt2imgButton.disabled = false;
                     });
                 })
