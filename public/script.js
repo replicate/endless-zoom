@@ -285,11 +285,32 @@ function s(p) {
                 body: JSON.stringify({ images })
             }).then((r) => r.json())
                 .then((data) => {
-                    gif = data.output.video
-                    zip = data.output.zip
-                    gifButton.setAttribute("style", "display: flex; background: #fab1fc");
-                    zipButton.setAttribute("style", "display: flex; background: #fab1fc");
-                    generateDownloadButton.innerHTML = "Generate .gif and .zip"
+                    let prediction;
+                    async function getPrediction(id) {
+                        prediction = await fetch(`/api/gif/${id}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                        })
+                        let prediction_json = await prediction.json();
+                        if (prediction_json.status != "succeeded" && prediction_json.status != "failed") {
+                            setTimeout(() => { getPrediction(id) }, 1000);
+                        } else {
+
+                            gif = prediction_json.output.video
+                            zip = prediction_json.output.zip
+                            gifButton.setAttribute("style", "display: flex; background: #fab1fc");
+                            zipButton.setAttribute("style", "display: flex; background: #fab1fc");
+                            generateDownloadButton.innerHTML = "Generate .gif and .zip"
+                        }
+                    }
+                    getPrediction(data.output.id);
+                    // gif = data.output.video
+                    // zip = data.output.zip
+                    // gifButton.setAttribute("style", "display: flex; background: #fab1fc");
+                    // zipButton.setAttribute("style", "display: flex; background: #fab1fc");
+                    // generateDownloadButton.innerHTML = "Generate .gif and .zip"
                 });
         });
         downloadContainer.appendChild(generateDownloadButton);
