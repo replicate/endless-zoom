@@ -16,9 +16,10 @@ export default async function handler(req, res) {
     // Use deployment on endless-zoom.vercel.app, otherwise use public model
     let prediction;
     // console.log(req.body.images);
-    prediction = await replicate.run(
-        'chigozienri/image-urls-to-video:f3afb57de840ebb8dfc623726608d5b00e6c4ef17564283fb3945631446ede76',
+    prediction = await replicate.predictions.create(
         {
+            version:
+                'f3afb57de840ebb8dfc623726608d5b00e6c4ef17564283fb3945631446ede76',
             input: { image_urls: req.body.images.toString(), output_zip: true },
         });
 
