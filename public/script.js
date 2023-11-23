@@ -452,9 +452,10 @@ function s(p) {
                 delete audio;
             })
             let audio = new Audio('./pop.mp3');
-            audio.playbackRate = 0.5 + Math.random();
+            audio.preservesPitch = false;
+            audio.playbackRate = 0.8 + Math.random() * 0.4;
             safePlay(audio)
-            audio.playbackRate = 0.5 + Math.random();
+            audio.playbackRate = 0.8 + Math.random() * 0.4;
             setTimeout(() => { safePlay(audio) }, Math.random() * 50)
             return
         }
@@ -505,6 +506,7 @@ function s(p) {
 
         if ((frame - 1) % 75 == 0) {
             var audio = new Audio('./whoosh.mp3');
+            audio.preservesPitch = false;
             audio.playbackRate = 0.5 + Math.random();
             soundEffects.push(audio);
             safePlay(audio);
