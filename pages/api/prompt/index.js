@@ -48,7 +48,6 @@ let prompts = [
     'Colorful Paint Palette',
     'Retro Vinyl Record Grooves',
     'Starry Night Sky',
-    'Intricate Mandala Design',
     'Carnival Ferris Wheel Lights',
     'Steam Locomotive Engine',
     'Human Eye Iris',
@@ -99,7 +98,6 @@ let prompts = [
     'Abstract Watercolor Painting',
     'Cracked Desert Ground Patterns',
     'City Skyscrapers Reflection in Water',
-    'Cellular machinery',
     'Nano-machines'
 ]
 
